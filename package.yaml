@@ -24,6 +24,9 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies: 
+    - haskeline
+    - parsec
 
 executables:
   lambda-hs-exe:
@@ -34,6 +37,8 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - haskeline
+    - mtl
     - lambda-hs
 
 tests:
