@@ -27,6 +27,9 @@ library:
   dependencies: 
     - haskeline
     - parsec
+    - containers
+    - mtl
+    - llvm-hs
 
 executables:
   lambda-hs-exe:
@@ -40,6 +43,8 @@ executables:
     - haskeline
     - mtl
     - lambda-hs
+    - containers
+    - llvm-hs
 
 tests:
   lambda-hs-test:
@@ -51,3 +56,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - lambda-hs
+    - containers
+    - llvm-hs
