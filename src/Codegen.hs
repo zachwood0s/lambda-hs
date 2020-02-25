@@ -1,10 +1,12 @@
-
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Codegen where
 
 import Data.Word
 import Data.String
 import Data.List
 import Data.Function
+import qualified Data.ByteString.UTF8 as BU
+import qualified Data.ByteString.Short as BS
 import qualified Data.Map as Map
 
 import Control.Monad.State
@@ -19,6 +21,16 @@ import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.Attribute as A
 import qualified LLVM.AST.CallingConvention as CC
 import qualified LLVM.AST.FloatingPointPredicate as FP
+
+------------------------
+-- Utilities 
+------------------------
+
+strToBS :: String -> BS.ShortByteString
+strToBS = BS.toShort . BU.fromString
+
+bsToStr :: BS.ShortByteString -> String
+bsToStr = BU.toString . BS.fromShort
 
 type SymbolTable = [(String, Operand)]
 type Names = Map.Map String Int
@@ -48,7 +60,7 @@ runLLVM :: AST.Module -> LLVM a -> AST.Module
 runLLVM mod (LLVM m) = execState m mod
 
 emptyModule :: String -> AST.Module
-emptyModule label = defaultModule { moduleName = label }
+emptyModule label = defaultModule { moduleName = strToBS label }
 
 addDefn :: Definition -> LLVM ()
 addDefn d = do 
@@ -101,7 +113,7 @@ terminator trm = do
   modifyBlock (blk { term = Just trm })
   return trm
 
-br :: Named -> Codegen (Named Terminator)
+br :: Name -> Codegen (Named Terminator)
 br val = terminator $ Do $ Br val []
 
 cbr :: Operand -> Name -> Name -> Codegen (Named Terminator)
@@ -111,9 +123,38 @@ ret :: Operand -> Codegen (Named Terminator)
 ret val = terminator $ Do $ Ret (Just val) []
 
 
-
 ------------------------
 -- Blocks 
+------------------------
+
+sortBlocks :: [(Name, BlockState)] -> [(Name, BlockState)]
+sortBlocks = sortBy (compare `on` (idx . snd))
+
+createBlocks :: CodegenState -> [BasicBlock]
+createBlocks m = map makeBlock $ sortBlocks $ Map.toList (blocks m)
+
+makeBlock :: (Name, BlockState) -> BasicBlock
+makeBlock (l, (BlockState _ s t)) = BasicBlock l (reverse s) (maketerm t)
+  where 
+    maketerm (Just x) = x
+    maketerm Nothing = error $ "Block has no terminator: " ++ (show l)
+
+entryBlockName :: String
+entryBlockName = "entry"
+
+emptyBlock :: Int -> BlockState
+emptyBlock i = BlockState i [] Nothing
+
+emptyCodegen :: CodegenState
+emptyCodegen = CodegenState (Name $ strToBS entryBlockName) Map.empty [] 1 0 Map.empty
+
+execCodegen :: Codegen a -> CodegenState
+execCodegen m = execState (runCodegen m) emptyCodegen
+
+
+
+------------------------
+-- Block Stack
 ------------------------
 
 entry :: Codegen Name 
@@ -129,12 +170,12 @@ addBlock bname = do
       (qname, supply) = uniqueName bname nms 
   
   modify $ \s -> s 
-    { blocks = Map.insert (Name qname) new bls 
+    { blocks = Map.insert (Name $ strToBS qname) new bls 
     , blockCount = ix + 1 
     , names = supply
     }
   
-  return (Name qname)
+  return (Name $ strToBS qname)
 
 setBlock :: Name -> Codegen Name 
 setBlock bname = do 
@@ -147,7 +188,7 @@ getBlock = gets currentBlock
 modifyBlock :: BlockState -> Codegen () 
 modifyBlock new = do 
   active <- gets currentBlock 
-  modify $ \s -> s { blocks = Map.insert active new (block s) }
+  modify $ \s -> s { blocks = Map.insert active new (blocks s) }
 
 current :: Codegen BlockState 
 current = do 
@@ -157,6 +198,21 @@ current = do
     Just x -> return x 
     Nothing -> error $ "No such block: " ++ show c
 
-
 double :: Type 
-double = FloatingPointType 64
+double = FloatingPointType DoubleFP
+
+
+call :: Operand -> [Operand] -> Codegen Operand
+call fn args = instr $ Call Nothing CC.C [] (Right fn) (toArgs args) [] []
+
+alloca :: Type -> Codegen Operand
+alloca ty = instr $ Alloca ty Nothing 0 []
+
+store :: Operand -> Operand -> Codegen Operand
+store ptr val = instr $ Store False ptr val Nothing 0 []
+
+load :: Operand -> Codegen Operand
+load ptr = instr $ Load False ptr Nothing 0 []
+
+toArgs :: [Operand] -> [(Operand, [A.ParameterAttribute])]
+toArgs = map (\x -> (x, []))

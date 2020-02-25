@@ -30,6 +30,9 @@ library:
     - containers
     - mtl
     - llvm-hs
+    - llvm-hs-pure
+    - utf8-string
+    - bytestring
 
 executables:
   lambda-hs-exe:
@@ -45,6 +48,9 @@ executables:
     - lambda-hs
     - containers
     - llvm-hs
+    - llvm-hs-pure
+    - utf8-string
+    - bytestring
 
 tests:
   lambda-hs-test:
