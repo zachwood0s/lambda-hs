@@ -18,6 +18,13 @@ packages:
       sha256: d572dd639dd315c94eccdfd9b10a3c266163cf945778141087a003c1ed836a91
   original:
     hackage: llvm-hs-9.0.0
+- completed:
+    hackage: extra-1.6.20@sha256:8a39421181e3cb952038f0c4acee9f3b5a14743f80e90507adeb693ff529d3c4,2717
+    pantry-tree:
+      size: 1828
+      sha256: 62ccee49227f669f3abc895c446cc71c6a62a9c46a05f172523f0b1dbe971633
+  original:
+    hackage: extra-1.6.20
 snapshots:
 - completed:
     size: 489011

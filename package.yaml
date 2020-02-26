@@ -33,6 +33,7 @@ library:
     - llvm-hs-pure
     - utf8-string
     - bytestring
+    - extra
 
 executables:
   lambda-hs-exe:
@@ -51,6 +52,7 @@ executables:
     - llvm-hs-pure
     - utf8-string
     - bytestring
+    - extra
 
 tests:
   lambda-hs-test:

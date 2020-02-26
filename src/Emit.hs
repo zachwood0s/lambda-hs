@@ -17,6 +17,8 @@ import qualified Data.Map as Map
 import Codegen
 import qualified AST as S
 
+
+{-
 codegenTop :: S.Expr -> LLVM ()
 codegenTop (S.Abstraction name body) = do
   define double name fnargs bls
@@ -62,4 +64,4 @@ codegen mod fns = withContext $ \context ->
   where
     modn = mapM codegenTop fns
     newast = runLLVM mod modn
-
+-}

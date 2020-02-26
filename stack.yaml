@@ -38,6 +38,7 @@ packages:
 extra-deps:
 - haskeline-0.8.0.0
 - llvm-hs-9.0.0
+- extra-1.6.20
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
