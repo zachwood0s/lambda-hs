@@ -92,53 +92,6 @@ makeEnvRefCallsM env e = case e of
 closureConvert :: Expr -> Expr 
 closureConvert e = evalState (closureConvertM e) $ emptyConversionState
 
-closureConvert' :: Expr -> (Expr, VarSet)
-closureConvert' (ELam param body) =
-  -- Convert lambda expressions below 
-  -- Remove param from returned free var list 
-  -- convert env access 
-  -- return frevar list and new nodes
-  let 
-    env = "env"
-    (body', free) = closureConvert' body 
-    free' = Set.delete param free 
-    body'' = makeEnvRefCalls env free' body'
-    closure = EMakeClosure 
-      (ELam' env param body'')
-      (EMakeEnv $ Set.toList free')
-  in 
-    (closure, free')
-
-closureConvert' e@(EVar name) =
-  (e, Set.singleton name)
-
-closureConvert' e@(EApp fun arg) = 
-  let (fun', free1) = closureConvert' fun 
-      (arg', free2) = closureConvert' arg 
-  in
-    (EAppClosure fun' arg', Set.union free1 free2)
-
-closureConvert' e@(EAppClosure fun arg) =
-  let (fun', free1) = closureConvert' fun 
-      (arg', free2) = closureConvert' arg 
-  in
-    (EAppClosure fun' arg', Set.union free1 free2)
-
-closureConvert' e = (e, Set.empty)
-
-makeEnvRefCalls :: Env -> VarSet-> Expr-> Expr
-makeEnvRefCalls env free e@(EVar name)
-  | Set.member name free = EnvRef env name -- Located free variable. Need to use environment
-  | otherwise = e 
-
-makeEnvRefCalls env free (EApp fun arg) =
-  EApp (makeEnvRefCalls env free fun) (makeEnvRefCalls env free arg)
-
-makeEnvRefCalls env free (EAppClosure fun arg) = 
-  EAppClosure (makeEnvRefCalls env free fun) (makeEnvRefCalls env free arg)
-
-makeEnvRefCalls env free exp = exp -- Do nothing for everything else
-
 test :: Expr
 test = closureConvert
   (ELam "x" 
