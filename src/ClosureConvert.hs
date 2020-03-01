@@ -3,6 +3,8 @@ module ClosureConvert where
 import qualified Data.Set as Set
 import Control.Monad.State.Lazy
 import Control.Monad.Extra
+import Control.Monad.Identity
+import Debug.Trace
 
 type Name = String
 type Env = String 
@@ -15,19 +17,38 @@ data Expr
   
   -- 
   | ELam' Env Name Expr 
-  | EMakeClosure Expr Expr 
+  | EMakeClosure Name Expr Expr 
   | EAppClosure Expr Expr 
   | EMakeEnv [Name]
   | EnvRef Env Name
   deriving Show 
 
+descendM :: (Monad m, Applicative m) => (Expr -> m Expr) -> Expr -> m Expr
+descendM f e = f =<< case e of
+  ELam a b    -> ELam <$> pure a <*> descendM f b
+  EVar a      -> EVar <$> pure a
+  EApp a b    -> EApp <$> descendM f a <*> descendM f b
+  ELam' a b c -> ELam' <$> pure a <*> pure b <*> descendM f c
+  EMakeClosure a b c 
+              -> EMakeClosure <$> pure a <*> descendM f b <*> pure c
+  EMakeEnv a  -> EMakeEnv <$> pure a
+  EnvRef a b  -> EnvRef <$> pure a <*> pure b
+
+descend :: (Expr -> Expr) -> Expr -> Expr
+descend f ex = trace "build" $ runIdentity (descendM (pure . f) ex)
+  
+
 data ConversionState = ConversionState
   { freeVars :: VarSet
   , envCount :: Int
+  , lambdaCount :: Int
   }
 
 emptyConversionState :: ConversionState
-emptyConversionState = ConversionState Set.empty 0
+emptyConversionState = ConversionState Set.empty 0 0
+
+lambdaName :: Int -> String
+lambdaName n = "lambda" ++ (show n)
 
 envName :: Int -> String
 envName n = "env" ++ (show n)
@@ -42,14 +63,23 @@ getNextEnv = do
   modify (\xs -> xs { envCount = count + 1 })
   return $ envName count
 
+getNextLambda :: State ConversionState String
+getNextLambda = do
+  count <- gets lambdaCount
+  modify (\xs -> xs { lambdaCount = count + 1 })
+  return $ lambdaName count
+
+emptyFree :: State ConversionState VarSet
+emptyFree = do 
+  startFree <- gets freeVars
+  modifyFreeVars (const Set.empty)
+  return startFree
+
 deleteFree :: String -> State ConversionState ()
 deleteFree free = modifyFreeVars (Set.delete free)
 
 insertFree :: String -> State ConversionState ()
 insertFree free = modifyFreeVars (Set.insert free)
-
-emptyFree :: ConversionState -> ConversionState
-emptyFree s = s { freeVars = Set.empty} 
 
 isFree :: String -> State ConversionState Bool
 isFree name = gets freeVars >>= return . (Set.member name)
@@ -59,12 +89,18 @@ setSingleFree n = modifyFreeVars (const $ Set.singleton n)
 
 closureConvertM :: Expr -> State ConversionState Expr
 closureConvertM (ELam param body) = do
+  startFree <- emptyFree		-- This seems bad
+					-- I'm essentially keeping a global state
+					-- But clearing it at every recursive step
+					-- I don't think I actually need that
   env <- getNextEnv
+  lam <- getNextLambda
   body' <- closureConvertM body 
   deleteFree param
   body'' <- makeEnvRefCallsM env body'
   free <- gets (Set.toList . freeVars)
-  return $ EMakeClosure
+  modifyFreeVars (const startFree)  
+  return $ EMakeClosure lam
     (ELam' env param body'')
     (EMakeEnv free)
 
@@ -88,11 +124,30 @@ makeEnvRefCallsM env e = case e of
     EAppClosure <$> makeEnvRefCallsM env fun <*> makeEnvRefCallsM env arg
   _ -> return e
 
-
 closureConvert :: Expr -> Expr 
 closureConvert e = evalState (closureConvertM e) $ emptyConversionState
 
+transform :: Expr -> Expr
+transform = descend f
+  where 
+    f e@(ELam _ x) = EMakeClosure "Converted" e (EMakeEnv ["free"])
+    f (EVar "f") = EVar "lkjslkj"
+    f x = x
+
 test :: Expr
+test = trace "Run" $ transform
+  (ELam "x" 
+    (EApp
+      (EApp 
+	(EVar "f")
+	(EVar "z")
+      )
+      (ELam "y"
+	(EVar "j")
+      )
+    )
+  )
+{-
 test = closureConvert
   (ELam "x" 
     (EApp 
@@ -108,3 +163,4 @@ test = closureConvert
       )
     )
   )
+  -}
