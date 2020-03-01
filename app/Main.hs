@@ -7,7 +7,7 @@ import Control.Monad.Trans
 import System.Console.Haskeline
 
 main :: IO ()
-main = print test{-runInputT defaultSettings loop
+main = print test {-runInputT defaultSettings loop
   where 
     loop = do 
       minput <- getInputLine "ready> "
