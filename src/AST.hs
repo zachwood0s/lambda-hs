@@ -57,11 +57,11 @@ instance FreeVars Expr where
     ELit _           -> Set.empty 
     ELam n e         -> freeVars e \\ Set.singleton n
     EVar x           -> Set.singleton x 
-    EApp a b         -> freeVars a `Set.union` allVars b
+    EApp a b         -> freeVars a `Set.union` freeVars b
     EAssign n e      -> freeVars e \\ Set.singleton n
     ELam' _ n e      -> freeVars e \\ Set.singleton n
     EMkClosure _ e _ -> freeVars e
-    EAppClosure a b  -> freeVars a `Set.union` freeVars a 
+    EAppClosure a b  -> freeVars a `Set.union` freeVars b
     EMkEnv _         -> Set.empty 
     EEnvRef _ _      -> Set.empty
 
@@ -77,6 +77,7 @@ descendM f e = f =<< case e of
   EApp a b         -> EApp <$> descendM f a <*> descendM f b
   ELam' a b c      -> ELam' <$> pure a <*> pure b <*> descendM f c
   EMkClosure a b c -> EMkClosure <$> pure a <*> descendM f b <*> pure c
+  EAppClosure a b  -> EAppClosure <$> descendM f a <*> descendM f b
   EMkEnv a         -> EMkEnv <$> pure a
   EEnvRef a b      -> EEnvRef <$> pure a <*> pure b
 

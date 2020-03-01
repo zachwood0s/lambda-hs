@@ -1,43 +1,124 @@
 module ClosureConvert where
 
-import qualified Data.Set as Set
+import AST
+
 import Control.Monad.State.Lazy
-import Control.Monad.Extra
-import Control.Monad.Identity
-import Debug.Trace
 
-type Name = String
-type Env = String 
-type VarSet = Set.Set Name 
+import qualified Data.Set as Set
 
-data Expr 
-  = ELam Name Expr 
-  | EVar Name 
-  | EApp Expr Expr 
+data ConversionState = ConversionState
+  { _envCount :: Int 
+  , _lamCount :: Int 
+  }
+
+type ConvertM a = State ConversionState a
+
+-----------------------------
+-- Utils
+-----------------------------
+
+envName :: Int -> Env 
+envName n = "env" ++ (show n)
+
+lamName :: Int -> Name 
+lamName n = "lambda" ++ (show n)
+
+-----------------------------
+-- ConversionState Helpers
+-----------------------------
+
+emptyConvState :: ConversionState
+emptyConvState = ConversionState 0 0
+
+getNextEnv :: ConvertM Env
+getNextEnv = do 
+  count <- gets _envCount 
+  modify (\xs -> xs { _envCount = count + 1 })
+  return $ envName count
+
+getNextLam :: ConvertM Name 
+getNextLam = do 
+  count <- gets _lamCount 
+  modify (\xs -> xs { _lamCount = count + 1 })
+  return $ lamName count
+
+-----------------------------
+-- Conversion
+-----------------------------
+
+-- | Converts all EVar accesses who are contained
+-- in the free set to EEnvRefs
+makeEnvRefCalls :: Env    -- ^ env to create ref calls for
+                -> VarSet -- ^ set of free vars
+                -> Expr   -- ^ expression to convert
+                -> Expr   -- ^ converted expression
+makeEnvRefCalls env free = descend f 
+  where 
+    f exp = case exp of 
+      EVar n 
+        | Set.member n free -> EEnvRef env n
+      _ -> exp
+
+-- | Converts an ELam into EMkClosure by calculating
+-- free variables, converting variable references in
+-- the body, and making an environment from free vars
+closureConvertM :: Expr           -- ^ expression to convert
+                -> ConvertM Expr  -- ^ resulting conversion monad
+closureConvertM = descendM f
+  where 
+    f exp = case exp of 
+      ELam n body -> do 
+        env <- getNextEnv
+        lam <- getNextLam
+        let fv = freeVars exp
+        let body' = makeEnvRefCalls env fv body 
+        return $ EMkClosure lam
+          (ELam' env n body')
+          (EMkEnv $ Set.toList fv)
+
+      EApp a b -> return $ EAppClosure a b
+      _ -> return exp
+
+-- | Evaluates the conversion monad. 
+-- See 'closureConvertM'
+closureConvert :: Expr -- ^ expression to convert
+               -> Expr -- ^ converted expression 
+closureConvert e = evalState (closureConvertM e) emptyConvState
   
-  -- 
-  | ELam' Env Name Expr 
-  | EMakeClosure Name Expr Expr 
-  | EAppClosure Expr Expr 
-  | EMakeEnv [Name]
-  | EnvRef Env Name
-  deriving Show 
+testExpr1 = 
+  (ELam "x" 
+    (EApp
+      (EApp 
+        (EVar "f")
+        (EVar "z")
+      )
+      (ELam "y"
+        (EVar "j")
+      )
+    )
+  )
 
-descendM :: (Monad m, Applicative m) => (Expr -> m Expr) -> Expr -> m Expr
-descendM f e = f =<< case e of
-  ELam a b    -> ELam <$> pure a <*> descendM f b
-  EVar a      -> EVar <$> pure a
-  EApp a b    -> EApp <$> descendM f a <*> descendM f b
-  ELam' a b c -> ELam' <$> pure a <*> pure b <*> descendM f c
-  EMakeClosure a b c 
-              -> EMakeClosure <$> pure a <*> descendM f b <*> pure c
-  EMakeEnv a  -> EMakeEnv <$> pure a
-  EnvRef a b  -> EnvRef <$> pure a <*> pure b
+testExpr2 = 
+  (ELam "x" 
+    (EApp 
+      (ELam "y" 
+        (EApp 
+          (EVar "y")
+          (EVar "x")
+        )
+      )
+      (EApp 
+        (EVar "f")
+        (EVar "z")
+      )
+    )
+  )
 
-descend :: (Expr -> Expr) -> Expr -> Expr
-descend f ex = trace "build" $ runIdentity (descendM (pure . f) ex)
-  
+test :: Expr
+test = closureConvert testExpr2
 
+
+{-
 data ConversionState = ConversionState
   { freeVars :: VarSet
   , envCount :: Int
@@ -89,10 +170,10 @@ setSingleFree n = modifyFreeVars (const $ Set.singleton n)
 
 closureConvertM :: Expr -> State ConversionState Expr
 closureConvertM (ELam param body) = do
-  startFree <- emptyFree		-- This seems bad
-					-- I'm essentially keeping a global state
-					-- But clearing it at every recursive step
-					-- I don't think I actually need that
+  startFree <- emptyFree    -- This seems bad
+          -- I'm essentially keeping a global state
+          -- But clearing it at every recursive step
+          -- I don't think I actually need that
   env <- getNextEnv
   lam <- getNextLambda
   body' <- closureConvertM body 
@@ -134,33 +215,4 @@ transform = descend f
     f (EVar "f") = EVar "lkjslkj"
     f x = x
 
-test :: Expr
-test = trace "Run" $ transform
-  (ELam "x" 
-    (EApp
-      (EApp 
-	(EVar "f")
-	(EVar "z")
-      )
-      (ELam "y"
-	(EVar "j")
-      )
-    )
-  )
-{-
-test = closureConvert
-  (ELam "x" 
-    (EApp 
-      (ELam "y" 
-        (EApp 
-          (EVar "y")
-          (EVar "x")
-        )
-      )
-      (EApp 
-        (EVar "f")
-        (EVar "z")
-      )
-    )
-  )
-  -}
+    -}
