@@ -1,7 +1,6 @@
 module ClosureConvert 
   ( closureConvert
   , closureConvertM 
-  , test
   ) where
 
 import Control.Monad.State.Lazy
@@ -76,7 +75,7 @@ makeEnvRefCalls env fv e = f e
 -- the body, and making an environment from free vars
 closureConvertM :: Expr           -- ^ expression to convert
                 -> ConvertM Expr  -- ^ resulting conversion monad
-closureConvertM = descendM f
+closureConvertM = bottomUpM f
   where 
     f exp = case exp of 
       ELam n body -> do 

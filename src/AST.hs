@@ -70,34 +70,28 @@ instance FreeVars Expr where
 ----------------------
 
 topDownM :: (Monad m, Applicative m) => (Expr -> m Expr) -> Expr -> m Expr
-topDownM f ex = f ex >>= \e -> case e of
-  ELit l           -> ELit <$> pure l
-  ELam a b         -> ELam <$> pure a <*> descendM f b
-  EVar a           -> EVar <$> pure a
-  EApp a b         -> EApp <$> topDownM f a <*> topDownM f b
-  ELam' a b c      -> ELam' <$> pure a <*> pure b <*> topDownM f c
-  EMkClosure a b c -> EMkClosure <$> pure a <*> topDownM f b <*> pure c
-  EAppClosure a b  -> EAppClosure <$> topDownM f a <*> topDownM f b
-  EMkEnv a         -> EMkEnv <$> pure a
-  EEnvRef a b      -> EEnvRef <$> pure a <*> pure b
+topDownM f ex = f ex >>= traverseM (topDownM f)
 
 topDown :: (Expr -> Expr) -> Expr -> Expr
 topDown f ex = runIdentity (topDownM (pure . f) ex)
 
-descendM :: (Monad m, Applicative m) => (Expr -> m Expr) -> Expr -> m Expr
-descendM f e = f =<< case e of
+bottomUpM :: (Monad m, Applicative m) => (Expr -> m Expr) -> Expr -> m Expr
+bottomUpM f ex = traverseM (bottomUpM f) ex >>= f
+
+bottomUp :: (Expr -> Expr) -> Expr -> Expr
+bottomUp f ex = runIdentity (bottomUpM (pure . f) ex)
+
+traverseM :: (Monad m, Applicative m) => (Expr -> m Expr) -> Expr -> m Expr
+traverseM f ex = case ex of
   ELit l           -> ELit <$> pure l
-  ELam a b         -> ELam <$> pure a <*> descendM f b
+  ELam a b         -> ELam <$> pure a <*> f b
   EVar a           -> EVar <$> pure a
-  EApp a b         -> EApp <$> descendM f a <*> descendM f b
-  ELam' a b c      -> ELam' <$> pure a <*> pure b <*> descendM f c
-  EMkClosure a b c -> EMkClosure <$> pure a <*> descendM f b <*> pure c
-  EAppClosure a b  -> EAppClosure <$> descendM f a <*> descendM f b
+  EApp a b         -> EApp <$> f a <*> f b
+  ELam' a b c      -> ELam' <$> pure a <*> pure b <*> f c
+  EMkClosure a b c -> EMkClosure <$> pure a <*> f b <*> pure c
+  EAppClosure a b  -> EAppClosure <$> f a <*> f b
   EMkEnv a         -> EMkEnv <$> pure a
   EEnvRef a b      -> EEnvRef <$> pure a <*> pure b
-
-descend :: (Expr -> Expr) -> Expr -> Expr
-descend f ex = runIdentity (descendM (pure . f) ex)
-
+  
 
 
