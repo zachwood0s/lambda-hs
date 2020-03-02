@@ -6,6 +6,7 @@ module ClosureConvert
 
 import Control.Monad.State.Lazy
 import qualified Data.Set as Set
+import Debug.Trace
 import AST
 
 -- | Values used in the closure conversion process. 
@@ -60,17 +61,14 @@ getNextLam = do
 -- Conversion
 -----------------------------
 
--- | Converts all EVar accesses who are contained
--- in the free set to EEnvRefs
-makeEnvRefCalls :: Env    -- ^ env to create ref calls for
-                -> VarSet -- ^ set of free vars
-                -> Expr   -- ^ expression to convert
-                -> Expr   -- ^ converted expression
-makeEnvRefCalls env free = descend f 
+makeEnvRefCalls :: Env -> VarSet -> Expr -> Expr 
+makeEnvRefCalls env fv e = f e
   where 
     f exp = case exp of 
       EVar n 
-        | Set.member n free -> EEnvRef env n
+        | Set.member n fv -> EEnvRef env n
+      EApp a b -> EApp (f a) (f b)
+      EAppClosure a b-> EAppClosure (f a) (f b)
       _ -> exp
 
 -- | Converts an ELam into EMkClosure by calculating

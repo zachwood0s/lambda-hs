@@ -69,6 +69,21 @@ instance FreeVars Expr where
 -- AST Utils
 ----------------------
 
+topDownM :: (Monad m, Applicative m) => (Expr -> m Expr) -> Expr -> m Expr
+topDownM f ex = f ex >>= \e -> case e of
+  ELit l           -> ELit <$> pure l
+  ELam a b         -> ELam <$> pure a <*> descendM f b
+  EVar a           -> EVar <$> pure a
+  EApp a b         -> EApp <$> topDownM f a <*> topDownM f b
+  ELam' a b c      -> ELam' <$> pure a <*> pure b <*> topDownM f c
+  EMkClosure a b c -> EMkClosure <$> pure a <*> topDownM f b <*> pure c
+  EAppClosure a b  -> EAppClosure <$> topDownM f a <*> topDownM f b
+  EMkEnv a         -> EMkEnv <$> pure a
+  EEnvRef a b      -> EEnvRef <$> pure a <*> pure b
+
+topDown :: (Expr -> Expr) -> Expr -> Expr
+topDown f ex = runIdentity (topDownM (pure . f) ex)
+
 descendM :: (Monad m, Applicative m) => (Expr -> m Expr) -> Expr -> m Expr
 descendM f e = f =<< case e of
   ELit l           -> ELit <$> pure l
