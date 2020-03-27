@@ -34,6 +34,8 @@ library:
     - utf8-string
     - bytestring
     - extra
+    - alloy 
+    - ghc-prim
 
 executables:
   lambda-hs-exe:
@@ -54,6 +56,17 @@ executables:
     - bytestring
     - extra
 
+  gen-exe:
+    main:        Main.hs
+    source-dirs: gen
+    ghc-options: 
+    - -threaded 
+    - -rtsopts 
+    - -with-rtsopts=-N
+    dependencies: 
+    - alloy
+    - lambda-hs
+
 tests:
   lambda-hs-test:
     main:                Spec.hs
@@ -68,4 +81,5 @@ tests:
     - llvm-hs
     - tasty
     - tasty-hspec
+    - parsec
     

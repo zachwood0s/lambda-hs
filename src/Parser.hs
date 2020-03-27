@@ -14,29 +14,30 @@ expr :: Parser Expr
 expr = Ex.buildExpressionParser [[]] application
 
 int :: Parser Expr 
-int = (ELit . LInt) <$> integer
+int = (ELit . Int) <$> integer
 
 floating :: Parser Expr 
-floating = (ELit . LFloat) <$> float
+floating = (ELit . Float) <$> float
 
 variable :: Parser Expr 
-variable = EVar <$> identifier
+variable = (EVar . Var) <$> identifier
 
 abstraction :: Parser Expr 
 abstraction = do 
   backslash 
   arg <- identifier 
   dot 
-  ELam arg <$> expr
+  (EAbs . ALambda) <$> Lambda Nothing arg <$> expr
 
 application :: Parser Expr 
-application = chainl1 factor $ optional space >> return EApp
+application = do 
+  chainl1 factor $ optional space >> return (\x y -> EApp $ App x y)
 
 assignment :: Parser Expr 
 assignment = do 
   name <- identifier
   equals 
-  EAssign name <$> expr
+  EAssign <$> Assign name <$> expr
 
 factor :: Parser Expr 
 factor = try floating 

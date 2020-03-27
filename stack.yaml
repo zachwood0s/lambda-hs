@@ -41,6 +41,7 @@ extra-deps:
 - extra-1.6.20
 - tasty-1.2.3
 - tasty-hspec-1.1.5.1
+- alloy-1.2.2
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a

@@ -39,6 +39,13 @@ packages:
       sha256: b7de6d6cb063baf9e553650a1df302bda7d5d99b93549cdc64e322347f56f1b7
   original:
     hackage: tasty-hspec-1.1.5.1
+- completed:
+    hackage: alloy-1.2.2@sha256:372776d0e7236e49dfd605ca6ae17f5963d6c8b396b61700410c93763bb7af9d,2253
+    pantry-tree:
+      size: 1396
+      sha256: a28bf2ad67ec27ab69d3629bf4caa73108e9833360218e20a7b83ea1782365b1
+  original:
+    hackage: alloy-1.2.2
 snapshots:
 - completed:
     size: 489011
