@@ -5,21 +5,9 @@ module ClosureConvertSpec
 import Test.Tasty
 import Test.Tasty.Hspec
 
-import AST hiding (lambda)
+import AST 
 import ClosureConvert
 
-var :: Name -> Expr
-var = EVar . Var
-
-envRef :: Env -> Name -> Expr
-envRef env var = EVar $ EnvRef env var
-
-lambda :: Name -> Expr -> Expr
-lambda param body = EAbs $ ALambda $ Lambda Nothing param body
-
-closure :: Name -> Env -> Name -> Expr -> MkEnv -> Expr
-closure name envName param body env = 
-  EAbs $ AClosure $ MkClosure name (Lambda (Just envName) param body) env
 
 -------------------------
 -- Test Cases
@@ -41,69 +29,63 @@ freeVarResult =
     (envRef "env0" "y") 
     (MkEnv ["y"])
 
-{-
 nested :: Expr 
-nested = ELam "x" (ELam "y" (EVar "x"))
+nested = lambda "x" (lambda "y" (var "x"))
 
 nestedResult :: Expr 
-nestedResult = EMkClosure "lambda1" 
-  (ELam' "env1" "x"
-    (EMkClosure "lambda0" 
-      (ELam' "env0" "y"
-        (EEnvRef "env0" "x"))
-      (EMkEnv ["x"])))
-  (EMkEnv [])
+nestedResult = 
+  closure "lambda1" "env1" "x"
+    (closure "lambda0" "env0" "y"
+        (envRef "env0" "x")
+        (MkEnv ["x"]))
+  (MkEnv [])
     
-app :: Expr 
-app = ELam "x" (EApp (EVar "z") (EVar "x"))
+application :: Expr 
+application = lambda "x" (app (var "z") (var "x"))
 
-appResult :: Expr
-appResult = EMkClosure "lambda0"
-  (ELam' "env0" "x" 
-    (EAppClosure 
-      (EEnvRef "env0" "z")
-      (EVar "x")))
-  (EMkEnv ["z"])
+applicationResult :: Expr
+applicationResult = 
+  closure "lambda0" "env0" "x" 
+    (appC 
+      (envRef "env0" "z")
+      (var "x"))
+    (MkEnv ["z"])
 
 complex :: Expr 
-complex = ELam "x" 
-  (ELam "y" 
-    (EApp 
-      (EApp 
-        (ELam "f"
-          (EVar "f"))
-        (EApp 
-          (EVar "f")
-          (EVar "z")))
-      (ELam "z" 
-        (EApp 
-          (EVar "z")
-          (EVar "x")))))
+complex = lambda "x" 
+  (lambda "y" 
+    (app 
+      (app 
+        (lambda "f"
+          (var "f"))
+        (app 
+          (var "f")
+          (var "z")))
+      (lambda "z" 
+        (app 
+          (var "z")
+          (var "x")))))
 
 complexResult :: Expr 
-complexResult = EMkClosure "lambda3"
-  (ELam' "env3" "x"
-    (EMkClosure "lambda2" 
-      (ELam' "env2" "y"
-        (EAppClosure 
-          (EAppClosure 
-            (EMkClosure "lambda0" 
-              (ELam' "env0" "f"
-                (EVar "f"))
-              (EMkEnv []))
-            (EAppClosure 
-              (EEnvRef "env2" "f")
-              (EEnvRef "env2" "z")))
-          (EMkClosure "lambda1"
-            (ELam' "env1" "z"
-              (EAppClosure 
-                (EVar "z")
-                (EEnvRef "env1" "x")))
-            (EMkEnv ["x"]))))
-      (EMkEnv ["f", "z"])))
-    (EMkEnv [])
+complexResult = 
+  closure "lambda3" "env3" "x"
+    (closure "lambda2" "env2" "y"
+      (appC 
+        (appC 
+          (closure "lambda0" "env0" "f"
+            (var "f")
+            (MkEnv []))
+          (appC 
+            (envRef "env2" "f")
+            (envRef "env2" "z")))
+        (closure "lambda1" "env1" "z"
+          (appC 
+            (var "z")
+            (envRef "env1" "x"))
+          (MkEnv ["x"])))
+      (MkEnv ["f", "z"]))
+    (MkEnv [])
 
--}
 
 
 closureConvertSpec :: Spec
@@ -115,13 +97,11 @@ closureConvertSpec = do
     it "converts free variable references" $ do
       closureConvert freeVar `shouldBe` freeVarResult
 
-{-
     it "converts nested closures" $ do 
       closureConvert nested `shouldBe` nestedResult
 
     it "converts applications" $ do 
-      closureConvert app `shouldBe` appResult
+      closureConvert application `shouldBe` applicationResult
 
     it "converts complex expressions" $ do 
       closureConvert complex `shouldBe` complexResult
--}

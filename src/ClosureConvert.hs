@@ -63,62 +63,44 @@ getNextLam = do
 -- Conversion
 -----------------------------
 
-closureConvertM :: Abstraction -> ConvertM Abstraction
-closureConvertM exp = case exp of 
-  ALambda (Lambda _ param body) -> do
-    env <- getNextEnv 
-    lam <- getNextLam 
-    return 
-      $ AClosure 
-        $ MkClosure lam 
-          (Lambda (Just env) param body)
-          (MkEnv [])
-  _ -> return exp
+makeEnvRefCalls :: Env -> VarSet -> Expr -> Expr
+makeEnvRefCalls env fv = makeRecurse ops
+  where 
+    ops :: Expr :- Var :- BaseOp
+    ops = stop :- replace :- baseOp
+
+    stop :: Expr -> Expr 
+    stop e = case e of 
+      EAbs _ -> e
+      _      -> makeDescend ops e
+    
+    replace :: Var -> Var
+    replace e = case e of 
+      Var n | Set.member n fv -> EnvRef env n
+      _ -> e
+
+closureConvertM :: Expr -> ConvertM Expr
+closureConvertM = applyBottomUpM2 closures app
+  where 
+    closures :: Abstraction -> ConvertM Abstraction
+    closures abs = case abs of 
+      ALambda (Lambda _ param body) -> do
+        env <- getNextEnv 
+        lam <- getNextLam 
+        let fv = freeVars abs
+        let body' = makeEnvRefCalls env fv body 
+        return 
+          $ AClosure 
+            $ MkClosure lam 
+              (Lambda (Just env) param body')
+              (MkEnv $ Set.toList fv)
+
+      _ -> return abs
+
+    app :: App -> ConvertM App 
+    app (App a b) = return $ AppC a b
+    app e = return e
 
 closureConvert :: Expr -> Expr 
-closureConvert e = evalState (makeRecurseM ops e) emptyConvState
-  where 
-    ops :: (Abstraction :-* BaseOpA) (State ConversionState)
-    ops = closureConvertM :-* baseOpA
-
-
-
-{-
-makeEnvRefCalls :: Env -> VarSet -> Expr -> Expr 
-makeEnvRefCalls env fv e = f e
-  where 
-    f exp = case exp of 
-      EVar n 
-        | Set.member n fv -> EEnvRef env n
-      EApp a b -> EApp (f a) (f b)
-      EAppClosure a b-> EAppClosure (f a) (f b)
-      _ -> exp
-
--- | Converts an ELam into EMkClosure by calculating
--- free variables, converting variable references in
--- the body, and making an environment from free vars
-closureConvertM :: Expr           -- ^ expression to convert
-                -> ConvertM Expr  -- ^ resulting conversion monad
-closureConvertM = bottomUpM f
-  where 
-    f exp = case exp of 
-      ELam n body -> do 
-        env <- getNextEnv
-        lam <- getNextLam
-        let fv = freeVars exp
-        let body' = makeEnvRefCalls env fv body 
-        return $ EMkClosure lam
-          (ELam' env n body')
-          (EMkEnv $ Set.toList fv)
-
-      EApp a b -> return $ EAppClosure a b
-      _ -> return exp
-
--- | Evaluates the conversion monad. 
--- See 'closureConvertM'
-closureConvert :: Expr -- ^ expression to convert
-               -> Expr -- ^ converted expression 
 closureConvert e = evalState (closureConvertM e) emptyConvState
 
-
--}
