@@ -98,8 +98,9 @@ closureConvertM = applyBottomUpM2 closures app
       _ -> return abs
 
     app :: App -> ConvertM App 
-    app (App a b) = return $ AppC a b
-    app e = return e
+    app a = case a of 
+      App a b -> return $ AppC a b
+      _ -> return a
 
 closureConvert :: Expr -> Expr 
 closureConvert e = evalState (closureConvertM e) emptyConvState
