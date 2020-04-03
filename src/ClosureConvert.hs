@@ -71,8 +71,8 @@ makeEnvRefCalls env fv = makeRecurse ops
 
     stop :: Expr -> Expr 
     stop e = case e of 
-      EAbs _ -> e
-      _      -> makeDescend ops e
+      EAbs _ -> e                   -- Stop descent if we hit another lambda
+      _      -> makeDescend ops e   -- Otherwise continue descent
     
     replace :: Var -> Var
     replace e = case e of 

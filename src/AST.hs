@@ -1,15 +1,19 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, TypeOperators, FlexibleContexts, MultiParamTypeClasses, FlexibleInstances, DefaultSignatures #-}
 
 module AST where
 
 import Data.Data 
 import Data.Typeable
 import Data.Set ((\\))
+import GHC.Generics
+
 import qualified Data.Set as Set
 
 type Name = String
 type Env = String 
 type VarSet = Set.Set Name
+
+newtype AllVarSet = All { unAllSet :: VarSet }
 
 data Expr 
   = ELit Literal 
@@ -17,7 +21,7 @@ data Expr
   | EApp App 
   | EVar Var
   | EAssign Assign
-  deriving (Show, Eq, Ord, Typeable, Data)
+  deriving (Show, Eq, Ord, Typeable, Data, Generic)
 
 data Assign = Assign 
   { _binding :: Name 
@@ -34,8 +38,10 @@ data App
   | AppC Expr Expr
   deriving (Show, Eq, Ord, Typeable, Data)
 
-data Abstraction = AClosure MkClosure | ALambda Lambda
-  deriving (Show, Eq, Ord, Typeable, Data)
+data Abstraction 
+  = AClosure MkClosure 
+  | ALambda Lambda
+  deriving (Show, Eq, Ord, Typeable, Data, Generic)
 
 data MkClosure = MkClosure 
   { _name :: Name 
@@ -59,38 +65,53 @@ data Literal
   | Char Char
   deriving (Show, Eq, Ord, Typeable, Data)
 
+-------------------------
+-- Generic Instances
+-------------------------
+
+class GProcess f r where 
+  gprocess :: f p -> r
+
+instance GProcess f r => GProcess (M1 i c f) r where 
+  gprocess (M1 x) = gprocess x
+
+instance (GProcess f r, GProcess g r) => GProcess (f :+: g) r where 
+  gprocess (L1 x) = gprocess x
+  gprocess (R1 y) = gprocess y
+
+process :: (Generic a, GProcess (Rep a) r) => a -> r
+process = gprocess . from
+
 
 -------------------------
 -- AllVars
 -------------------------
 
+getAllVars :: (AllVars a) => a -> VarSet
+getAllVars a = unAllSet $ allVars a
+
 class AllVars a where 
-  allVars :: a -> VarSet
+  allVars :: a -> AllVarSet
+  default allVars :: (Generic a, GProcess (Rep a) AllVarSet) => a -> AllVarSet
+  allVars = process
 
-class FreeVars a where 
-  freeVars :: a -> VarSet
+instance AllVars a => GProcess (K1 i a) AllVarSet where 
+  gprocess (K1 x) = allVars x
 
-instance AllVars Expr where
-  allVars (ELit a)    = allVars a
-  allVars (EAbs a)    = allVars a
-  allVars (EApp a)    = allVars a
-  allVars (EVar a)    = allVars a
-  allVars (EAssign a) = allVars a
+instance AllVars Expr -- Uses generic instance
 
 instance AllVars Assign where 
   allVars (Assign _ e) = allVars e
 
 instance AllVars Var where 
-  allVars (Var x) = Set.singleton x
-  allVars _       = Set.empty
+  allVars (Var x) = All $ Set.singleton x
+  allVars _       = All $ Set.empty
 
 instance AllVars App where 
-  allVars (App a b)  = allVars a `Set.union` allVars b
-  allVars (AppC a b) = allVars a `Set.union` allVars b
+  allVars (App a b)  = All $ getAllVars a `Set.union` getAllVars b
+  allVars (AppC a b) = All $ getAllVars a `Set.union` getAllVars b
 
-instance AllVars Abstraction where 
-  allVars (AClosure c) = allVars c
-  allVars (ALambda c)  = allVars c
+instance AllVars Abstraction -- Uses generic instance
 
 instance AllVars MkClosure where 
   allVars (MkClosure _ e _) = allVars e
@@ -99,18 +120,21 @@ instance AllVars Lambda where
   allVars (Lambda _ _ e) = allVars e
 
 instance AllVars Literal where 
-  allVars = const Set.empty
+  allVars = const (All Set.empty)
 
 -------------------------
 -- FreeVars
 -------------------------
 
-instance FreeVars Expr where
-  freeVars (ELit a)    = freeVars a
-  freeVars (EAbs a)    = freeVars a
-  freeVars (EApp a)    = freeVars a
-  freeVars (EVar a)    = freeVars a
-  freeVars (EAssign a) = freeVars a
+class FreeVars a where 
+  freeVars :: a -> VarSet
+  default freeVars :: (Generic a, GProcess (Rep a) VarSet) => a -> VarSet
+  freeVars = process
+
+instance FreeVars a => GProcess (K1 i a) VarSet where 
+  gprocess (K1 x) = freeVars x
+
+instance FreeVars Expr -- Uses generic instance
 
 instance FreeVars Assign where 
   freeVars (Assign n e) = freeVars e \\ Set.singleton n
@@ -123,9 +147,7 @@ instance FreeVars App where
   freeVars (App a b)  = freeVars a `Set.union` freeVars b
   freeVars (AppC a b) = freeVars a `Set.union` freeVars b
 
-instance FreeVars Abstraction where 
-  freeVars (AClosure c) = freeVars c
-  freeVars (ALambda c)  = freeVars c
+instance FreeVars Abstraction -- Uses generic instance
 
 instance FreeVars MkClosure where 
   freeVars (MkClosure _ e _) = freeVars e
