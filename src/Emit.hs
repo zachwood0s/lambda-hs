@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, DefaultSignatures #-}
 module Emit where
 
 import LLVM.Module
@@ -9,11 +9,13 @@ import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.Float as F
 import qualified LLVM.AST.FloatingPointPredicate as FP
 
+import Data.ByteString.UTF8 as BU
 import Data.Word
 import Data.Int
 import Control.Monad.Except
 import qualified Data.Map as Map
 import GHC.Generics
+import Control.Monad.Except
 
 import ClosureConvert
 import Codegen
@@ -57,8 +59,6 @@ cgen (S.Application fn args) = do
   call (externf (AST.Name fn)) largs
 
 
-class DoCodegen a where 
-  codegen :: a -> Codegen AST.Operand
 
 instance DoCodegen a => S.GProcess (K1 i a) (Codegen AST.Operand) where 
   gprocess (K1 x) = codegen x
@@ -68,17 +68,41 @@ instance DoCodegen S.Expr where
 -}
 
 {-
+class DoCodegen a where 
+  codegen :: a -> LLVM ()
+  default codegen :: (Generic a, S.GProcess (Rep a) (LLVM ()))
+                  => a -> LLVM ()
+  codegen = S.process
+
+instance DoCodegen S.Expr -- Uses generic instance
+
+instance DoCodegen S.Assign where 
+  codegen (S.Assign _ e) = codegen e
+
+instance DoCodegen S.Var where 
+  codegen (S.Var x) = getvar x >>= load
+  codegen (S.EnvRef _ x) = getvar x >>= load -- TODO: update this to new type
+
+instance DoCodegen S.App where 
+  codegen (S.App a _) = codegen a -- TODO: make exception stuff
+  codegen (S.AppC a b) = do 
+    codegen a 
+    codegen b 
+
+instance DoCodegen S.Abstraction -- Uses generic instance
+
 instance DoCodegen S.MkClosure where 
   codegen (S.MkClosure name lambda env) = 
-    define double name fnarg bls 
+    define double name [fnarg] bls 
     where 
-      fnarg = (double, AST.Name (S._param lambda))   -- TODO: Change with type system
+      fnarg = (double, AST.Name $ strToBS (S._param lambda))   -- TODO: Change with type system
       bls = createBlocks $ execCodegen $ do
         entry <- addBlock entryBlockName 
         setBlock entry 
-        var <- alloca double -- TODO: Change with type system 
-        store var (local (AST.Name a))
-        assign a var 
+        forM args $ \a -> do
+          var <- alloca double
+          store var (local (AST.Name $ strToBS a))
+          assign a var
         codegen lambda >>= ret
 
 instance DoCodegen S.Lambda where 
@@ -87,8 +111,51 @@ instance DoCodegen S.Lambda where
 instance DoCodegen S.Literal where 
   codegen (S.Float n) = return $ cons $ C.Float (F.Double n)
   -- TODO: Add other literal
+-}
 
-    
+codegenClosure :: S.MkClosure -> LLVM (AST.Type)
+codegenClosure (S.MkClosure name lambda env) = do
+  envType <- mkEnv env 
+  fnType <- mkLambda lambda envType
+  mkClosure fnType envType
+  where 
+    mkClosure fn env = do 
+      struct name [fn, env]
+      return $ ptrToName name
+    mkEnv (S.MkEnv names) = do 
+      struct "fake" (map (const double) names) 
+      return $ ptrToName "fake"
+    mkLambda (S.Lambda _ param body) envType = do
+      define double name fnargs bls 
+      return $ ptrToFunc double types 
+      where 
+        args = ["env", param]
+        types = [envType, double]
+        fnargs = zip types (map AST.mkName args)
+        bls = createBlocks $ execCodegen $ do 
+          entry <- addBlock entryBlockName 
+          setBlock entry 
+          forM (zip types args) $ \(t, a) -> do
+            var <- alloca t
+            store var (local (AST.mkName a))
+            assign a var
+          (return $ cons $ C.Float (F.Double 10)) >>= ret
+
+codegenTop :: S.Expr -> LLVM ()
+codegenTop _ = codegenClosure (S.MkClosure "lambda0" 
+  (S.Lambda Nothing "x" (S.var "x")) (S.MkEnv ["x", "y"])) >> pure ()
+
+
+codegenMod :: AST.Module -> [S.Expr] -> IO AST.Module
+codegenMod mod fns = withContext $ \context -> do
+    llstr <- withModuleFromAST context newast moduleLLVMAssembly
+    putStrLn $ BU.toString llstr
+    return newast
+  where
+    modn = mapM (codegenTop . transforms) fns
+    newast = runLLVM mod modn
+
+{-
 
 
 codegenTop :: S.Expr -> LLVM ()
@@ -107,15 +174,6 @@ codegenTop exp = case exp of
         cgen body >>= ret
 
 
-codegenMod :: AST.Module -> [S.Expr] -> IO AST.Module
-codegenMod mod fns = withContext $ \context ->
-  liftError $ withModuleFromAST context newast $ \m -> do
-    llstr <- moduleLLVMAssembly m
-    putStrLn llstr
-    return newast
-  where
-    modn = mapM (codegenTop . transforms) fns
-    newast = runLLVM mod modn
 
         -}
 transforms :: S.Expr -> S.Expr

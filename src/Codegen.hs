@@ -13,6 +13,7 @@ import Control.Monad.State
 import Control.Applicative
 
 import LLVM.AST
+import LLVM.AST.Type (ptr)
 import LLVM.AST.Global
 import qualified LLVM.AST as AST 
 
@@ -21,6 +22,8 @@ import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.Attribute as A
 import qualified LLVM.AST.CallingConvention as CC
 import qualified LLVM.AST.FloatingPointPredicate as FP
+
+import Debug.Trace
 
 ------------------------
 -- Utilities 
@@ -67,6 +70,20 @@ addDefn d = do
   defs <- gets moduleDefinitions
   modify $ \s -> s { moduleDefinitions = defs ++ [d] }
 
+define :: Type -> String -> [(Type, Name)] -> [BasicBlock] -> LLVM ()
+define retty label argtys body = addDefn $ 
+  GlobalDefinition $ functionDefaults 
+    { name        = Name $ strToBS label 
+    , parameters  = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
+    , returnType  = retty 
+    , basicBlocks = body
+    }
+
+struct :: String -> [Type] -> LLVM ()
+struct name types = addDefn $ 
+  TypeDefinition (Name $ strToBS name) 
+    $ Just $ StructureType False types
+
 fresh :: Codegen Word 
 fresh = do 
   i <- gets count 
@@ -106,6 +123,12 @@ instr ins = do
   let i = stack blk 
   modifyBlock (blk {stack = (ref := ins) : i})
   return $ local ref
+
+unnminstr :: Instruction -> Codegen () 
+unnminstr ins = do 
+  blk <- current 
+  let i = stack blk 
+  modifyBlock (blk {stack = (Do ins) : i})
 
 terminator :: Named Terminator -> Codegen (Named Terminator)
 terminator trm = do 
@@ -201,6 +224,14 @@ current = do
 double :: Type 
 double = FloatingPointType DoubleFP
 
+ptrToName :: String -> Type 
+ptrToName name = ptr $ NamedTypeReference (mkName name)
+
+ptrToFunc :: Type -> [Type] -> Type 
+ptrToFunc ret args = ptr $ FunctionType ret args False
+
+cons :: C.Constant -> Operand 
+cons = ConstantOperand
 
 call :: Operand -> [Operand] -> Codegen Operand
 call fn args = instr $ Call Nothing CC.C [] (Right fn) (toArgs args) [] []
@@ -208,8 +239,8 @@ call fn args = instr $ Call Nothing CC.C [] (Right fn) (toArgs args) [] []
 alloca :: Type -> Codegen Operand
 alloca ty = instr $ Alloca ty Nothing 0 []
 
-store :: Operand -> Operand -> Codegen Operand
-store ptr val = instr $ Store False ptr val Nothing 0 []
+store :: Operand -> Operand -> Codegen ()
+store ptr val = unnminstr $ Store False ptr val Nothing 0 []
 
 load :: Operand -> Codegen Operand
 load ptr = instr $ Load False ptr Nothing 0 []
