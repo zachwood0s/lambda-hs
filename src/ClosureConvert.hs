@@ -2,9 +2,11 @@
 
 module ClosureConvert 
   ( closureConvert, closureConvertM
+  , eliminateLambdas
   ) where
 
 import Control.Monad.State.Lazy
+import Control.Monad.Writer.Lazy
 import Data.Generics.Alloy
 import qualified Data.Set as Set
 
@@ -104,4 +106,35 @@ closureConvertM = applyBottomUpM2 closures app
 
 closureConvert :: Expr -> Expr 
 closureConvert e = evalState (closureConvertM e) emptyConvState
+
+type LiftM = Writer [Declaration]
+liftClosuresM :: Expr -> LiftM Expr
+liftClosuresM = applyBottomUpM lift 
+  where 
+    lift :: MkClosure -> LiftM MkClosure
+    lift c@(MkClosure name body env) = do
+      tell [DFunction name c]
+      return $ ClosureRef name
+      where 
+        updatedClosure = c { _lambda = body { _body = closureRef name } }
+
+
+liftClosures :: Expr -> [Declaration]
+liftClosures = map makeDecl . listifyDepth (const True)
+  where 
+    makeDecl :: MkClosure -> Declaration
+    makeDecl c@(MkClosure name body env) =
+      DFunction name c
+      where 
+        updatedClosure = c { _lambda = body { _body = closureRef name } }
+
+execLift :: Expr -> [Declaration]
+execLift e = execWriter (liftClosuresM e)
+
+eliminateLambdas :: Expr -> [Declaration]
+eliminateLambdas = execLift . closureConvert
+
+
+
+
 

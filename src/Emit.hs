@@ -60,18 +60,18 @@ cgen (S.Application fn args) = do
 
 
 
-instance DoCodegen a => S.GProcess (K1 i a) (Codegen AST.Operand) where 
-  gprocess (K1 x) = codegen x
 
 instance DoCodegen S.Expr where 
   codegen expr = S.process expr 
 -}
 
-{-
+instance DoCodegen a => S.GProcess (K1 i a) (Codegen AST.Operand) where 
+  gprocess (K1 x) = codegen x
+
 class DoCodegen a where 
-  codegen :: a -> LLVM ()
-  default codegen :: (Generic a, S.GProcess (Rep a) (LLVM ()))
-                  => a -> LLVM ()
+  codegen :: a -> Codegen AST.Operand
+  default codegen :: (Generic a, S.GProcess (Rep a) (Codegen AST.Operand))
+                  => a -> Codegen AST.Operand
   codegen = S.process
 
 instance DoCodegen S.Expr -- Uses generic instance
@@ -90,6 +90,22 @@ instance DoCodegen S.App where
     codegen b 
 
 instance DoCodegen S.Abstraction -- Uses generic instance
+
+instance DoCodegen S.MkClosure where 
+  codegen (S.ClosureRef x) = return $ cons $ C.Int 0 0
+  codegen _ = return $ cons $ C.Int 0 0
+
+instance DoCodegen S.Lambda where 
+  codegen (S.Lambda env param body) = codegen body
+
+instance DoCodegen S.Literal where 
+  codegen (S.Float n) = return $ cons $ C.Float (F.Double n)
+
+{-
+
+
+
+
 
 instance DoCodegen S.MkClosure where 
   codegen (S.MkClosure name lambda env) = 
@@ -139,20 +155,21 @@ codegenClosure (S.MkClosure name lambda env) = do
             var <- alloca t
             store var (local (AST.mkName a))
             assign a var
-          (return $ cons $ C.Float (F.Double 10)) >>= ret
+          codegen body >>= ret
 
-codegenTop :: S.Expr -> LLVM ()
-codegenTop _ = codegenClosure (S.MkClosure "lambda0" 
-  (S.Lambda Nothing "x" (S.var "x")) (S.MkEnv ["x", "y"])) >> pure ()
+codegenTop :: S.Declaration -> LLVM ()
+codegenTop e = case e of 
+  S.DFunction name closure -> codegenClosure closure >> return ()
 
 
 codegenMod :: AST.Module -> [S.Expr] -> IO AST.Module
 codegenMod mod fns = withContext $ \context -> do
+    print $ map eliminateLambdas fns
     llstr <- withModuleFromAST context newast moduleLLVMAssembly
     putStrLn $ BU.toString llstr
     return newast
   where
-    modn = mapM (codegenTop . transforms) fns
+    modn = mapM codegenTop (concatMap transforms fns)
     newast = runLLVM mod modn
 
 {-
@@ -176,5 +193,5 @@ codegenTop exp = case exp of
 
 
         -}
-transforms :: S.Expr -> S.Expr
-transforms = closureConvert
+transforms :: S.Expr -> [S.Declaration]
+transforms = eliminateLambdas

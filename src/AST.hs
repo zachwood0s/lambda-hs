@@ -15,6 +15,15 @@ type VarSet = Set.Set Name
 
 newtype AllVarSet = All { unAllSet :: VarSet }
 
+data Module = Module 
+  { declarations :: [Declaration]
+  , name :: Name
+  } deriving (Show, Eq, Ord, Typeable, Data)
+
+data Declaration
+  = DFunction Name MkClosure
+  deriving (Show, Eq, Ord, Typeable, Data)
+
 data Expr 
   = ELit Literal 
   | EAbs Abstraction
@@ -47,7 +56,9 @@ data MkClosure = MkClosure
   { _name :: Name 
   , _lambda :: Lambda 
   , _env :: MkEnv
-  } deriving (Show, Eq, Ord, Typeable, Data)
+  } | 
+  ClosureRef Name 
+  deriving (Show, Eq, Ord, Typeable, Data)
   
 data Lambda = Lambda
   { _envName :: Maybe Env
@@ -164,6 +175,9 @@ instance FreeVars Literal where
 
 var :: Name -> Expr
 var = EVar . Var
+
+closureRef :: Name -> Expr
+closureRef = EAbs . AClosure . ClosureRef
 
 envRef :: Env -> Name -> Expr
 envRef env var = EVar $ EnvRef env var
