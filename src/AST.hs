@@ -61,13 +61,13 @@ data MkClosure = MkClosure
   deriving (Show, Eq, Ord, Typeable, Data)
   
 data Lambda = Lambda
-  { _envName :: Maybe Env
-  , _param :: Name 
+  { _param :: Name 
   , _body :: Expr 
   } deriving (Show, Eq, Ord, Typeable, Data)
 
 data MkEnv = MkEnv 
-  { _bindings :: [Name]
+  { _envName :: Env
+  , _bindings :: [Name]
   } deriving (Show, Eq, Ord, Typeable, Data)
   
 data Literal 
@@ -128,7 +128,7 @@ instance AllVars MkClosure where
   allVars (MkClosure _ e _) = allVars e
 
 instance AllVars Lambda where 
-  allVars (Lambda _ _ e) = allVars e
+  allVars (Lambda _ e) = allVars e
 
 instance AllVars Literal where 
   allVars = const (All Set.empty)
@@ -164,7 +164,7 @@ instance FreeVars MkClosure where
   freeVars (MkClosure _ e _) = freeVars e
 
 instance FreeVars Lambda where 
-  freeVars (Lambda _ n e) = freeVars e \\ Set.singleton n
+  freeVars (Lambda n e) = freeVars e \\ Set.singleton n
 
 instance FreeVars Literal where 
   freeVars = const Set.empty
@@ -183,11 +183,11 @@ envRef :: Env -> Name -> Expr
 envRef env var = EVar $ EnvRef env var
 
 lambda :: Name -> Expr -> Expr
-lambda param body = EAbs $ ALambda $ Lambda Nothing param body
+lambda param body = EAbs $ ALambda $ Lambda param body
 
 closure :: Name -> Env -> Name -> Expr -> MkEnv -> Expr
 closure name envName param body env = 
-  EAbs $ AClosure $ MkClosure name (Lambda (Just envName) param body) env
+  EAbs $ AClosure $ MkClosure name (Lambda param body) env
 
 app :: Expr -> Expr -> Expr
 app a b = EApp $ App a b

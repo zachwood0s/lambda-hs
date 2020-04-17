@@ -44,9 +44,6 @@ instance (Alloy ((AST.Abstraction)) r (((AST.Lambda)) :- ops)) =>
 instance (Alloy ((AST.Abstraction)) r (((AST.Literal)) :- ops)) =>
          Alloy ((AST.Abstraction)) (((AST.Literal)) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (Alloy ((AST.Abstraction)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- ops)) =>
-         Alloy ((AST.Abstraction)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
-  transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance (Alloy ((AST.Abstraction)) r (((AST.MkClosure)) :- ops)) =>
          Alloy ((AST.Abstraction)) (((AST.MkClosure)) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
@@ -114,10 +111,6 @@ instance (AlloyA ((AST.Abstraction)) r (((AST.Lambda)) :-* ops)) =>
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.Abstraction)) r (((AST.Literal)) :-* ops)) =>
          AlloyA ((AST.Abstraction)) (((AST.Literal)) :-* r) ops where
-  transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
-  transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyA ((AST.Abstraction)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* ops)) =>
-         AlloyA ((AST.Abstraction)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.Abstraction)) r (((AST.MkClosure)) :-* ops)) =>
@@ -194,10 +187,6 @@ instance (AlloyARoute ((AST.Abstraction)) r (((AST.Literal)) :-@ ops)) =>
          AlloyARoute ((AST.Abstraction)) (((AST.Literal)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
   transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (AlloyARoute ((AST.Abstraction)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ ops)) =>
-         AlloyARoute ((AST.Abstraction)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
-  transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
 instance (AlloyARoute ((AST.Abstraction)) r (((AST.MkClosure)) :-@ ops)) =>
          AlloyARoute ((AST.Abstraction)) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
@@ -257,9 +246,6 @@ instance (Alloy ((AST.App)) r (((AST.Lambda)) :- ops)) =>
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance (Alloy ((AST.App)) r (((AST.Literal)) :- ops)) =>
          Alloy ((AST.App)) (((AST.Literal)) :- r) ops where
-  transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (Alloy ((AST.App)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- ops)) =>
-         Alloy ((AST.App)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance (Alloy ((AST.App)) r (((AST.MkClosure)) :- ops)) =>
          Alloy ((AST.App)) (((AST.MkClosure)) :- r) ops where
@@ -332,10 +318,6 @@ instance (AlloyA ((AST.App)) r (((AST.Lambda)) :-* ops)) =>
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.App)) r (((AST.Literal)) :-* ops)) =>
          AlloyA ((AST.App)) (((AST.Literal)) :-* r) ops where
-  transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
-  transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyA ((AST.App)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* ops)) =>
-         AlloyA ((AST.App)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.App)) r (((AST.MkClosure)) :-* ops)) =>
@@ -416,10 +398,6 @@ instance (AlloyARoute ((AST.App)) r (((AST.Literal)) :-@ ops)) =>
          AlloyARoute ((AST.App)) (((AST.Literal)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
   transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (AlloyARoute ((AST.App)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ ops)) =>
-         AlloyARoute ((AST.App)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
-  transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
 instance (AlloyARoute ((AST.App)) r (((AST.MkClosure)) :-@ ops)) =>
          AlloyARoute ((AST.App)) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
@@ -475,9 +453,6 @@ instance (Alloy ((AST.Assign)) r (((AST.Lambda)) :- ops)) =>
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance (Alloy ((AST.Assign)) r (((AST.Literal)) :- ops)) =>
          Alloy ((AST.Assign)) (((AST.Literal)) :- r) ops where
-  transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (Alloy ((AST.Assign)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- ops)) =>
-         Alloy ((AST.Assign)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance (Alloy ((AST.Assign)) r (((AST.MkClosure)) :- ops)) =>
          Alloy ((AST.Assign)) (((AST.MkClosure)) :- r) ops where
@@ -542,10 +517,6 @@ instance (AlloyA ((AST.Assign)) r (((AST.Lambda)) :-* ops)) =>
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.Assign)) r (((AST.Literal)) :-* ops)) =>
          AlloyA ((AST.Assign)) (((AST.Literal)) :-* r) ops where
-  transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
-  transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyA ((AST.Assign)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* ops)) =>
-         AlloyA ((AST.Assign)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.Assign)) r (((AST.MkClosure)) :-* ops)) =>
@@ -618,10 +589,6 @@ instance (AlloyARoute ((AST.Assign)) r (((AST.Literal)) :-@ ops)) =>
          AlloyARoute ((AST.Assign)) (((AST.Literal)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
   transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (AlloyARoute ((AST.Assign)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ ops)) =>
-         AlloyARoute ((AST.Assign)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
-  transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
 instance (AlloyARoute ((AST.Assign)) r (((AST.MkClosure)) :-@ ops)) =>
          AlloyARoute ((AST.Assign)) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
@@ -674,9 +641,6 @@ instance (Alloy ((GHC.Types.Char)) r ops) =>
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ((GHC.Types.Char)) r ops) =>
          Alloy ((GHC.Types.Char)) (((AST.Literal)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Types.Char)) r ops) =>
-         Alloy ((GHC.Types.Char)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ((GHC.Types.Char)) r ops) =>
          Alloy ((GHC.Types.Char)) (((AST.MkClosure)) :- r) ops where
@@ -735,10 +699,6 @@ instance (AlloyA ((GHC.Types.Char)) r ops) =>
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ((GHC.Types.Char)) r ops) =>
          AlloyA ((GHC.Types.Char)) (((AST.Literal)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Types.Char)) r ops) =>
-         AlloyA ((GHC.Types.Char)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (_ :-* rest) ops vr = transformA rest ops vr
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ((GHC.Types.Char)) r ops) =>
@@ -806,10 +766,6 @@ instance (AlloyARoute ((GHC.Types.Char)) r ops) =>
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ((GHC.Types.Char)) r ops) =>
-         AlloyARoute ((GHC.Types.Char)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Types.Char)) r ops) =>
          AlloyARoute ((GHC.Types.Char)) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
@@ -861,9 +817,6 @@ instance (Alloy ((GHC.Types.Double)) r ops) =>
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ((GHC.Types.Double)) r ops) =>
          Alloy ((GHC.Types.Double)) (((AST.Literal)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Types.Double)) r ops) =>
-         Alloy ((GHC.Types.Double)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ((GHC.Types.Double)) r ops) =>
          Alloy ((GHC.Types.Double)) (((AST.MkClosure)) :- r) ops where
@@ -922,10 +875,6 @@ instance (AlloyA ((GHC.Types.Double)) r ops) =>
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ((GHC.Types.Double)) r ops) =>
          AlloyA ((GHC.Types.Double)) (((AST.Literal)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Types.Double)) r ops) =>
-         AlloyA ((GHC.Types.Double)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (_ :-* rest) ops vr = transformA rest ops vr
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ((GHC.Types.Double)) r ops) =>
@@ -990,10 +939,6 @@ instance (AlloyARoute ((GHC.Types.Double)) r ops) =>
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ((GHC.Types.Double)) r ops) =>
          AlloyARoute ((GHC.Types.Double)) (((AST.Literal)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Types.Double)) r ops) =>
-         AlloyARoute ((GHC.Types.Double)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ((GHC.Types.Double)) r ops) =>
@@ -1062,9 +1007,6 @@ instance (Alloy ((AST.Expr)) r (((AST.Lambda)) :- ops)) =>
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance (Alloy ((AST.Expr)) r (((AST.Literal)) :- ops)) =>
          Alloy ((AST.Expr)) (((AST.Literal)) :- r) ops where
-  transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (Alloy ((AST.Expr)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- ops)) =>
-         Alloy ((AST.Expr)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance (Alloy ((AST.Expr)) r (((AST.MkClosure)) :- ops)) =>
          Alloy ((AST.Expr)) (((AST.MkClosure)) :- r) ops where
@@ -1151,10 +1093,6 @@ instance (AlloyA ((AST.Expr)) r (((AST.Lambda)) :-* ops)) =>
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.Expr)) r (((AST.Literal)) :-* ops)) =>
          AlloyA ((AST.Expr)) (((AST.Literal)) :-* r) ops where
-  transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
-  transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyA ((AST.Expr)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* ops)) =>
-         AlloyA ((AST.Expr)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.Expr)) r (((AST.MkClosure)) :-* ops)) =>
@@ -1249,10 +1187,6 @@ instance (AlloyARoute ((AST.Expr)) r (((AST.Literal)) :-@ ops)) =>
          AlloyARoute ((AST.Expr)) (((AST.Literal)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
   transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (AlloyARoute ((AST.Expr)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ ops)) =>
-         AlloyARoute ((AST.Expr)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
-  transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
 instance (AlloyARoute ((AST.Expr)) r (((AST.MkClosure)) :-@ ops)) =>
          AlloyARoute ((AST.Expr)) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
@@ -1305,9 +1239,6 @@ instance (Alloy (Prelude.Integer) r ops) =>
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy (Prelude.Integer) r ops) =>
          Alloy (Prelude.Integer) (((AST.Literal)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy (Prelude.Integer) r ops) =>
-         Alloy (Prelude.Integer) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy (Prelude.Integer) r ops) =>
          Alloy (Prelude.Integer) (((AST.MkClosure)) :- r) ops where
@@ -1366,10 +1297,6 @@ instance (AlloyA (Prelude.Integer) r ops) =>
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA (Prelude.Integer) r ops) =>
          AlloyA (Prelude.Integer) (((AST.Literal)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA (Prelude.Integer) r ops) =>
-         AlloyA (Prelude.Integer) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (_ :-* rest) ops vr = transformA rest ops vr
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA (Prelude.Integer) r ops) =>
@@ -1437,10 +1364,6 @@ instance (AlloyARoute (Prelude.Integer) r ops) =>
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute (Prelude.Integer) r ops) =>
-         AlloyARoute (Prelude.Integer) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute (Prelude.Integer) r ops) =>
          AlloyARoute (Prelude.Integer) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
@@ -1460,13 +1383,12 @@ instance (AlloyARoute (Prelude.Integer) r ops) =>
          AlloyARoute (Prelude.Integer) (([[(GHC.Types.Char)]]) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (Alloy ((AST.Expr)) (f :- ops) BaseOp, Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (f :- ops) BaseOp, Alloy ([(GHC.Types.Char)]) (f :- ops) BaseOp) =>
+instance (Alloy ((AST.Expr)) (f :- ops) BaseOp, Alloy ([(GHC.Types.Char)]) (f :- ops) BaseOp) =>
          Alloy ((AST.Lambda)) BaseOp (f :- ops) where
-  transform _ ops (AST.Lambda a0 a1 a2)
+  transform _ ops (AST.Lambda a0 a1)
       =  AST.Lambda
      (transform ops BaseOp (a0))
      (transform ops BaseOp (a1))
-     (transform ops BaseOp (a2))
 instance () =>
          Alloy ((AST.Lambda)) BaseOp BaseOp where
   transform _ _ v =  v
@@ -1497,9 +1419,6 @@ instance () =>
 instance (Alloy ((AST.Lambda)) r (((AST.Literal)) :- ops)) =>
          Alloy ((AST.Lambda)) (((AST.Literal)) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (Alloy ((AST.Lambda)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- ops)) =>
-         Alloy ((AST.Lambda)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
-  transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance (Alloy ((AST.Lambda)) r (((AST.MkClosure)) :- ops)) =>
          Alloy ((AST.Lambda)) (((AST.MkClosure)) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
@@ -1515,18 +1434,16 @@ instance (Alloy ((AST.Lambda)) r (([(GHC.Types.Char)]) :- ops)) =>
 instance (Alloy ((AST.Lambda)) r (([[(GHC.Types.Char)]]) :- ops)) =>
          Alloy ((AST.Lambda)) (([[(GHC.Types.Char)]]) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (AlloyA ((AST.Expr)) (f :-* ops) BaseOpA, AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (f :-* ops) BaseOpA, AlloyA ([(GHC.Types.Char)]) (f :-* ops) BaseOpA) =>
+instance (AlloyA ((AST.Expr)) (f :-* ops) BaseOpA, AlloyA ([(GHC.Types.Char)]) (f :-* ops) BaseOpA) =>
          AlloyA ((AST.Lambda)) BaseOpA (f :-* ops) where
-  transformA _ ops (AST.Lambda a0 a1 a2)
+  transformA _ ops (AST.Lambda a0 a1)
       = pure AST.Lambda
    <*> (transformA ops BaseOpA (a0))
    <*> (transformA ops BaseOpA (a1))
-   <*> (transformA ops BaseOpA (a2))
-  transformM _ ops (AST.Lambda a0 a1 a2)
+  transformM _ ops (AST.Lambda a0 a1)
       = return AST.Lambda
    `ap` (transformM ops BaseOpA (a0))
    `ap` (transformM ops BaseOpA (a1))
-   `ap` (transformM ops BaseOpA (a2))
 instance () =>
          AlloyA ((AST.Lambda)) BaseOpA BaseOpA where
   transformA _ _ v = pure v
@@ -1567,10 +1484,6 @@ instance (AlloyA ((AST.Lambda)) r (((AST.Literal)) :-* ops)) =>
          AlloyA ((AST.Lambda)) (((AST.Literal)) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyA ((AST.Lambda)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* ops)) =>
-         AlloyA ((AST.Lambda)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
-  transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
-  transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance (AlloyA ((AST.Lambda)) r (((AST.MkClosure)) :-* ops)) =>
          AlloyA ((AST.Lambda)) (((AST.MkClosure)) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
@@ -1591,18 +1504,16 @@ instance (AlloyA ((AST.Lambda)) r (([[(GHC.Types.Char)]]) :-* ops)) =>
          AlloyA ((AST.Lambda)) (([[(GHC.Types.Char)]]) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyARoute ((AST.Expr)) (f :-@ ops) BaseOpARoute, AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (f :-@ ops) BaseOpARoute, AlloyARoute ([(GHC.Types.Char)]) (f :-@ ops) BaseOpARoute) =>
+instance (AlloyARoute ((AST.Expr)) (f :-@ ops) BaseOpARoute, AlloyARoute ([(GHC.Types.Char)]) (f :-@ ops) BaseOpARoute) =>
          AlloyARoute ((AST.Lambda)) BaseOpARoute (f :-@ ops) where
-  transformARoute _ ops (AST.Lambda a0 a1 a2 , rt)
+  transformARoute _ ops (AST.Lambda a0 a1 , rt)
       = pure AST.Lambda
-   <*> (transformARoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.Lambda b0 b1 b2) -> f b0 >>= (\b0 -> return (AST.Lambda b0 b1 b2)))))
-   <*> (transformARoute ops BaseOpARoute (a1, rt @-> makeRoute [1] (\f (AST.Lambda b0 b1 b2) -> f b1 >>= (\b1 -> return (AST.Lambda b0 b1 b2)))))
-   <*> (transformARoute ops BaseOpARoute (a2, rt @-> makeRoute [2] (\f (AST.Lambda b0 b1 b2) -> f b2 >>= (\b2 -> return (AST.Lambda b0 b1 b2)))))
-  transformMRoute _ ops (AST.Lambda a0 a1 a2 , rt)
+   <*> (transformARoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.Lambda b0 b1) -> f b0 >>= (\b0 -> return (AST.Lambda b0 b1)))))
+   <*> (transformARoute ops BaseOpARoute (a1, rt @-> makeRoute [1] (\f (AST.Lambda b0 b1) -> f b1 >>= (\b1 -> return (AST.Lambda b0 b1)))))
+  transformMRoute _ ops (AST.Lambda a0 a1 , rt)
       = return AST.Lambda
-   `ap` (transformMRoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.Lambda b0 b1 b2) -> f b0 >>= (\b0 -> return (AST.Lambda b0 b1 b2)))))
-   `ap` (transformMRoute ops BaseOpARoute (a1, rt @-> makeRoute [1] (\f (AST.Lambda b0 b1 b2) -> f b1 >>= (\b1 -> return (AST.Lambda b0 b1 b2)))))
-   `ap` (transformMRoute ops BaseOpARoute (a2, rt @-> makeRoute [2] (\f (AST.Lambda b0 b1 b2) -> f b2 >>= (\b2 -> return (AST.Lambda b0 b1 b2)))))
+   `ap` (transformMRoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.Lambda b0 b1) -> f b0 >>= (\b0 -> return (AST.Lambda b0 b1)))))
+   `ap` (transformMRoute ops BaseOpARoute (a1, rt @-> makeRoute [1] (\f (AST.Lambda b0 b1) -> f b1 >>= (\b1 -> return (AST.Lambda b0 b1)))))
 instance () =>
          AlloyARoute ((AST.Lambda)) BaseOpARoute BaseOpARoute where
   transformARoute _ _ (v, _) = pure v
@@ -1641,10 +1552,6 @@ instance () =>
   transformMRoute (f :-@ _) _ vr = f vr
 instance (AlloyARoute ((AST.Lambda)) r (((AST.Literal)) :-@ ops)) =>
          AlloyARoute ((AST.Lambda)) (((AST.Literal)) :-@ r) ops where
-  transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
-  transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (AlloyARoute ((AST.Lambda)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ ops)) =>
-         AlloyARoute ((AST.Lambda)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
   transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
 instance (AlloyARoute ((AST.Lambda)) r (((AST.MkClosure)) :-@ ops)) =>
@@ -1708,9 +1615,6 @@ instance (Alloy ((AST.Literal)) r ops) =>
 instance () =>
          Alloy ((AST.Literal)) (((AST.Literal)) :- r) ops where
   transform (f :- _) _ vr = f vr
-instance (Alloy ((AST.Literal)) r ops) =>
-         Alloy ((AST.Literal)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ((AST.Literal)) r ops) =>
          Alloy ((AST.Literal)) (((AST.MkClosure)) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
@@ -1786,10 +1690,6 @@ instance () =>
          AlloyA ((AST.Literal)) (((AST.Literal)) :-* r) ops where
   transformA (f :-* _) _ vr = f vr
   transformM (f :-* _) _ vr = f vr
-instance (AlloyA ((AST.Literal)) r ops) =>
-         AlloyA ((AST.Literal)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ((AST.Literal)) r ops) =>
          AlloyA ((AST.Literal)) (((AST.MkClosure)) :-* r) ops where
   transformA (_ :-* rest) ops vr = transformA rest ops vr
@@ -1871,10 +1771,6 @@ instance () =>
   transformARoute (f :-@ _) _ vr = f vr
   transformMRoute (f :-@ _) _ vr = f vr
 instance (AlloyARoute ((AST.Literal)) r ops) =>
-         AlloyARoute ((AST.Literal)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((AST.Literal)) r ops) =>
          AlloyARoute ((AST.Literal)) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
@@ -1894,213 +1790,6 @@ instance (AlloyARoute ((AST.Literal)) r ops) =>
          AlloyARoute ((AST.Literal)) (([[(GHC.Types.Char)]]) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (Alloy ([(GHC.Types.Char)]) (f :- ops) BaseOp) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) BaseOp (f :- ops) where
-  transform _ _ (GHC.Maybe.Nothing)
-      =  GHC.Maybe.Nothing
-  transform _ ops (GHC.Maybe.Just a0)
-      =  GHC.Maybe.Just
-     (transform ops BaseOp (a0))
-instance () =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) BaseOp BaseOp where
-  transform _ _ v =  v
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Abstraction)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.App)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Assign)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r (((GHC.Types.Char)) :- ops)) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Types.Char)) :- r) ops where
-  transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Types.Double)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Expr)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) ((Prelude.Integer) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Lambda)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Literal)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance () =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
-  transform (f :- _) _ vr = f vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.MkClosure)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.MkEnv)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Var)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r (([(GHC.Types.Char)]) :- ops)) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (([(GHC.Types.Char)]) :- r) ops where
-  transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         Alloy ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (([[(GHC.Types.Char)]]) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (AlloyA ([(GHC.Types.Char)]) (f :-* ops) BaseOpA) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) BaseOpA (f :-* ops) where
-  transformA _ _ (GHC.Maybe.Nothing)
-      = pure GHC.Maybe.Nothing
-  transformA _ ops (GHC.Maybe.Just a0)
-      = pure GHC.Maybe.Just
-   <*> (transformA ops BaseOpA (a0))
-  transformM _ _ (GHC.Maybe.Nothing)
-      = return GHC.Maybe.Nothing
-  transformM _ ops (GHC.Maybe.Just a0)
-      = return GHC.Maybe.Just
-   `ap` (transformM ops BaseOpA (a0))
-instance () =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) BaseOpA BaseOpA where
-  transformA _ _ v = pure v
-  transformM _ _ v = return v
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Abstraction)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.App)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Assign)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r (((GHC.Types.Char)) :-* ops)) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Types.Char)) :-* r) ops where
-  transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
-  transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Types.Double)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Expr)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) ((Prelude.Integer) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Lambda)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Literal)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance () =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
-  transformA (f :-* _) _ vr = f vr
-  transformM (f :-* _) _ vr = f vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.MkClosure)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.MkEnv)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Var)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r (([(GHC.Types.Char)]) :-* ops)) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (([(GHC.Types.Char)]) :-* r) ops where
-  transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
-  transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyA ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (([[(GHC.Types.Char)]]) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyARoute ([(GHC.Types.Char)]) (f :-@ ops) BaseOpARoute) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) BaseOpARoute (f :-@ ops) where
-  transformARoute _ _ (GHC.Maybe.Nothing , _)
-      = pure GHC.Maybe.Nothing
-  transformARoute _ ops (GHC.Maybe.Just a0 , rt)
-      = pure GHC.Maybe.Just
-   <*> (transformARoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (GHC.Maybe.Just b0) -> f b0 >>= (\b0 -> return (GHC.Maybe.Just b0)))))
-  transformMRoute _ _ (GHC.Maybe.Nothing , _)
-      = return GHC.Maybe.Nothing
-  transformMRoute _ ops (GHC.Maybe.Just a0 , rt)
-      = return GHC.Maybe.Just
-   `ap` (transformMRoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (GHC.Maybe.Just b0) -> f b0 >>= (\b0 -> return (GHC.Maybe.Just b0)))))
-instance () =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) BaseOpARoute BaseOpARoute where
-  transformARoute _ _ (v, _) = pure v
-  transformMRoute _ _ (v, _) = return v
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Abstraction)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.App)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Assign)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r (((GHC.Types.Char)) :-@ ops)) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Types.Char)) :-@ r) ops where
-  transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
-  transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Types.Double)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Expr)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) ((Prelude.Integer) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Lambda)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Literal)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance () =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (f :-@ _) _ vr = f vr
-  transformMRoute (f :-@ _) _ vr = f vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.MkClosure)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.MkEnv)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (((AST.Var)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r (([(GHC.Types.Char)]) :-@ ops)) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (([(GHC.Types.Char)]) :-@ r) ops where
-  transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
-  transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) r ops) =>
-         AlloyARoute ((GHC.Maybe.Maybe [(GHC.Types.Char)])) (([[(GHC.Types.Char)]]) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (Alloy ((AST.Lambda)) (f :- ops) BaseOp, Alloy ((AST.MkEnv)) (f :- ops) BaseOp, Alloy ([(GHC.Types.Char)]) (f :- ops) BaseOp) =>
          Alloy ((AST.MkClosure)) BaseOp (f :- ops) where
   transform _ ops (AST.MkClosure a0 a1 a2)
@@ -2108,6 +1797,9 @@ instance (Alloy ((AST.Lambda)) (f :- ops) BaseOp, Alloy ((AST.MkEnv)) (f :- ops)
      (transform ops BaseOp (a0))
      (transform ops BaseOp (a1))
      (transform ops BaseOp (a2))
+  transform _ ops (AST.ClosureRef a0)
+      =  AST.ClosureRef
+     (transform ops BaseOp (a0))
 instance () =>
          Alloy ((AST.MkClosure)) BaseOp BaseOp where
   transform _ _ v =  v
@@ -2138,9 +1830,6 @@ instance (Alloy ((AST.MkClosure)) r (((AST.Lambda)) :- ops)) =>
 instance (Alloy ((AST.MkClosure)) r (((AST.Literal)) :- ops)) =>
          Alloy ((AST.MkClosure)) (((AST.Literal)) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (Alloy ((AST.MkClosure)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- ops)) =>
-         Alloy ((AST.MkClosure)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
-  transform (f :- rest) ops vr = transform rest (f :- ops) vr
 instance () =>
          Alloy ((AST.MkClosure)) (((AST.MkClosure)) :- r) ops where
   transform (f :- _) _ vr = f vr
@@ -2163,11 +1852,17 @@ instance (AlloyA ((AST.Lambda)) (f :-* ops) BaseOpA, AlloyA ((AST.MkEnv)) (f :-*
    <*> (transformA ops BaseOpA (a0))
    <*> (transformA ops BaseOpA (a1))
    <*> (transformA ops BaseOpA (a2))
+  transformA _ ops (AST.ClosureRef a0)
+      = pure AST.ClosureRef
+   <*> (transformA ops BaseOpA (a0))
   transformM _ ops (AST.MkClosure a0 a1 a2)
       = return AST.MkClosure
    `ap` (transformM ops BaseOpA (a0))
    `ap` (transformM ops BaseOpA (a1))
    `ap` (transformM ops BaseOpA (a2))
+  transformM _ ops (AST.ClosureRef a0)
+      = return AST.ClosureRef
+   `ap` (transformM ops BaseOpA (a0))
 instance () =>
          AlloyA ((AST.MkClosure)) BaseOpA BaseOpA where
   transformA _ _ v = pure v
@@ -2208,10 +1903,6 @@ instance (AlloyA ((AST.MkClosure)) r (((AST.Literal)) :-* ops)) =>
          AlloyA ((AST.MkClosure)) (((AST.Literal)) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyA ((AST.MkClosure)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* ops)) =>
-         AlloyA ((AST.MkClosure)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
-  transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
-  transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
 instance () =>
          AlloyA ((AST.MkClosure)) (((AST.MkClosure)) :-* r) ops where
   transformA (f :-* _) _ vr = f vr
@@ -2239,11 +1930,17 @@ instance (AlloyARoute ((AST.Lambda)) (f :-@ ops) BaseOpARoute, AlloyARoute ((AST
    <*> (transformARoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.MkClosure b0 b1 b2) -> f b0 >>= (\b0 -> return (AST.MkClosure b0 b1 b2)))))
    <*> (transformARoute ops BaseOpARoute (a1, rt @-> makeRoute [1] (\f (AST.MkClosure b0 b1 b2) -> f b1 >>= (\b1 -> return (AST.MkClosure b0 b1 b2)))))
    <*> (transformARoute ops BaseOpARoute (a2, rt @-> makeRoute [2] (\f (AST.MkClosure b0 b1 b2) -> f b2 >>= (\b2 -> return (AST.MkClosure b0 b1 b2)))))
+  transformARoute _ ops (AST.ClosureRef a0 , rt)
+      = pure AST.ClosureRef
+   <*> (transformARoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.ClosureRef b0) -> f b0 >>= (\b0 -> return (AST.ClosureRef b0)))))
   transformMRoute _ ops (AST.MkClosure a0 a1 a2 , rt)
       = return AST.MkClosure
    `ap` (transformMRoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.MkClosure b0 b1 b2) -> f b0 >>= (\b0 -> return (AST.MkClosure b0 b1 b2)))))
    `ap` (transformMRoute ops BaseOpARoute (a1, rt @-> makeRoute [1] (\f (AST.MkClosure b0 b1 b2) -> f b1 >>= (\b1 -> return (AST.MkClosure b0 b1 b2)))))
    `ap` (transformMRoute ops BaseOpARoute (a2, rt @-> makeRoute [2] (\f (AST.MkClosure b0 b1 b2) -> f b2 >>= (\b2 -> return (AST.MkClosure b0 b1 b2)))))
+  transformMRoute _ ops (AST.ClosureRef a0 , rt)
+      = return AST.ClosureRef
+   `ap` (transformMRoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.ClosureRef b0) -> f b0 >>= (\b0 -> return (AST.ClosureRef b0)))))
 instance () =>
          AlloyARoute ((AST.MkClosure)) BaseOpARoute BaseOpARoute where
   transformARoute _ _ (v, _) = pure v
@@ -2284,10 +1981,6 @@ instance (AlloyARoute ((AST.MkClosure)) r (((AST.Literal)) :-@ ops)) =>
          AlloyARoute ((AST.MkClosure)) (((AST.Literal)) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
   transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (AlloyARoute ((AST.MkClosure)) r (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ ops)) =>
-         AlloyARoute ((AST.MkClosure)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
-  transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
 instance () =>
          AlloyARoute ((AST.MkClosure)) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (f :-@ _) _ vr = f vr
@@ -2308,11 +2001,12 @@ instance (AlloyARoute ((AST.MkClosure)) r (([[(GHC.Types.Char)]]) :-@ ops)) =>
          AlloyARoute ((AST.MkClosure)) (([[(GHC.Types.Char)]]) :-@ r) ops where
   transformARoute (f :-@ rest) ops vr = transformARoute rest (f :-@ ops) vr
   transformMRoute (f :-@ rest) ops vr = transformMRoute rest (f :-@ ops) vr
-instance (Alloy ([[(GHC.Types.Char)]]) (f :- ops) BaseOp) =>
+instance (Alloy ([(GHC.Types.Char)]) (f :- ops) BaseOp, Alloy ([[(GHC.Types.Char)]]) (f :- ops) BaseOp) =>
          Alloy ((AST.MkEnv)) BaseOp (f :- ops) where
-  transform _ ops (AST.MkEnv a0)
+  transform _ ops (AST.MkEnv a0 a1)
       =  AST.MkEnv
      (transform ops BaseOp (a0))
+     (transform ops BaseOp (a1))
 instance () =>
          Alloy ((AST.MkEnv)) BaseOp BaseOp where
   transform _ _ v =  v
@@ -2344,9 +2038,6 @@ instance (Alloy ((AST.MkEnv)) r ops) =>
          Alloy ((AST.MkEnv)) (((AST.Literal)) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ((AST.MkEnv)) r ops) =>
-         Alloy ((AST.MkEnv)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((AST.MkEnv)) r ops) =>
          Alloy ((AST.MkEnv)) (((AST.MkClosure)) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
 instance () =>
@@ -2361,14 +2052,16 @@ instance (Alloy ((AST.MkEnv)) r (([(GHC.Types.Char)]) :- ops)) =>
 instance (Alloy ((AST.MkEnv)) r (([[(GHC.Types.Char)]]) :- ops)) =>
          Alloy ((AST.MkEnv)) (([[(GHC.Types.Char)]]) :- r) ops where
   transform (f :- rest) ops vr = transform rest (f :- ops) vr
-instance (AlloyA ([[(GHC.Types.Char)]]) (f :-* ops) BaseOpA) =>
+instance (AlloyA ([(GHC.Types.Char)]) (f :-* ops) BaseOpA, AlloyA ([[(GHC.Types.Char)]]) (f :-* ops) BaseOpA) =>
          AlloyA ((AST.MkEnv)) BaseOpA (f :-* ops) where
-  transformA _ ops (AST.MkEnv a0)
+  transformA _ ops (AST.MkEnv a0 a1)
       = pure AST.MkEnv
    <*> (transformA ops BaseOpA (a0))
-  transformM _ ops (AST.MkEnv a0)
+   <*> (transformA ops BaseOpA (a1))
+  transformM _ ops (AST.MkEnv a0 a1)
       = return AST.MkEnv
    `ap` (transformM ops BaseOpA (a0))
+   `ap` (transformM ops BaseOpA (a1))
 instance () =>
          AlloyA ((AST.MkEnv)) BaseOpA BaseOpA where
   transformA _ _ v = pure v
@@ -2410,10 +2103,6 @@ instance (AlloyA ((AST.MkEnv)) r ops) =>
   transformA (_ :-* rest) ops vr = transformA rest ops vr
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ((AST.MkEnv)) r ops) =>
-         AlloyA ((AST.MkEnv)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((AST.MkEnv)) r ops) =>
          AlloyA ((AST.MkEnv)) (((AST.MkClosure)) :-* r) ops where
   transformA (_ :-* rest) ops vr = transformA rest ops vr
   transformM (_ :-* rest) ops vr = transformM rest ops vr
@@ -2433,14 +2122,16 @@ instance (AlloyA ((AST.MkEnv)) r (([[(GHC.Types.Char)]]) :-* ops)) =>
          AlloyA ((AST.MkEnv)) (([[(GHC.Types.Char)]]) :-* r) ops where
   transformA (f :-* rest) ops vr = transformA rest (f :-* ops) vr
   transformM (f :-* rest) ops vr = transformM rest (f :-* ops) vr
-instance (AlloyARoute ([[(GHC.Types.Char)]]) (f :-@ ops) BaseOpARoute) =>
+instance (AlloyARoute ([(GHC.Types.Char)]) (f :-@ ops) BaseOpARoute, AlloyARoute ([[(GHC.Types.Char)]]) (f :-@ ops) BaseOpARoute) =>
          AlloyARoute ((AST.MkEnv)) BaseOpARoute (f :-@ ops) where
-  transformARoute _ ops (AST.MkEnv a0 , rt)
+  transformARoute _ ops (AST.MkEnv a0 a1 , rt)
       = pure AST.MkEnv
-   <*> (transformARoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.MkEnv b0) -> f b0 >>= (\b0 -> return (AST.MkEnv b0)))))
-  transformMRoute _ ops (AST.MkEnv a0 , rt)
+   <*> (transformARoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.MkEnv b0 b1) -> f b0 >>= (\b0 -> return (AST.MkEnv b0 b1)))))
+   <*> (transformARoute ops BaseOpARoute (a1, rt @-> makeRoute [1] (\f (AST.MkEnv b0 b1) -> f b1 >>= (\b1 -> return (AST.MkEnv b0 b1)))))
+  transformMRoute _ ops (AST.MkEnv a0 a1 , rt)
       = return AST.MkEnv
-   `ap` (transformMRoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.MkEnv b0) -> f b0 >>= (\b0 -> return (AST.MkEnv b0)))))
+   `ap` (transformMRoute ops BaseOpARoute (a0, rt @-> makeRoute [0] (\f (AST.MkEnv b0 b1) -> f b0 >>= (\b0 -> return (AST.MkEnv b0 b1)))))
+   `ap` (transformMRoute ops BaseOpARoute (a1, rt @-> makeRoute [1] (\f (AST.MkEnv b0 b1) -> f b1 >>= (\b1 -> return (AST.MkEnv b0 b1)))))
 instance () =>
          AlloyARoute ((AST.MkEnv)) BaseOpARoute BaseOpARoute where
   transformARoute _ _ (v, _) = pure v
@@ -2479,10 +2170,6 @@ instance (AlloyARoute ((AST.MkEnv)) r ops) =>
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ((AST.MkEnv)) r ops) =>
          AlloyARoute ((AST.MkEnv)) (((AST.Literal)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((AST.MkEnv)) r ops) =>
-         AlloyARoute ((AST.MkEnv)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ((AST.MkEnv)) r ops) =>
@@ -2543,9 +2230,6 @@ instance (Alloy ((AST.Var)) r ops) =>
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ((AST.Var)) r ops) =>
          Alloy ((AST.Var)) (((AST.Literal)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ((AST.Var)) r ops) =>
-         Alloy ((AST.Var)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ((AST.Var)) r ops) =>
          Alloy ((AST.Var)) (((AST.MkClosure)) :- r) ops where
@@ -2616,10 +2300,6 @@ instance (AlloyA ((AST.Var)) r ops) =>
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ((AST.Var)) r ops) =>
          AlloyA ((AST.Var)) (((AST.Literal)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ((AST.Var)) r ops) =>
-         AlloyA ((AST.Var)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (_ :-* rest) ops vr = transformA rest ops vr
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ((AST.Var)) r ops) =>
@@ -2699,10 +2379,6 @@ instance (AlloyARoute ((AST.Var)) r ops) =>
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ((AST.Var)) r ops) =>
-         AlloyARoute ((AST.Var)) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ((AST.Var)) r ops) =>
          AlloyARoute ((AST.Var)) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
@@ -2759,9 +2435,6 @@ instance (Alloy ([(GHC.Types.Char)]) r ops) =>
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ([(GHC.Types.Char)]) r ops) =>
          Alloy ([(GHC.Types.Char)]) (((AST.Literal)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ([(GHC.Types.Char)]) r ops) =>
-         Alloy ([(GHC.Types.Char)]) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ([(GHC.Types.Char)]) r ops) =>
          Alloy ([(GHC.Types.Char)]) (((AST.MkClosure)) :- r) ops where
@@ -2830,10 +2503,6 @@ instance (AlloyA ([(GHC.Types.Char)]) r ops) =>
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ([(GHC.Types.Char)]) r ops) =>
          AlloyA ([(GHC.Types.Char)]) (((AST.Literal)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ([(GHC.Types.Char)]) r ops) =>
-         AlloyA ([(GHC.Types.Char)]) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (_ :-* rest) ops vr = transformA rest ops vr
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ([(GHC.Types.Char)]) r ops) =>
@@ -2911,10 +2580,6 @@ instance (AlloyARoute ([(GHC.Types.Char)]) r ops) =>
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ([(GHC.Types.Char)]) r ops) =>
-         AlloyARoute ([(GHC.Types.Char)]) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ([(GHC.Types.Char)]) r ops) =>
          AlloyARoute ([(GHC.Types.Char)]) (((AST.MkClosure)) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
@@ -2971,9 +2636,6 @@ instance (Alloy ([[(GHC.Types.Char)]]) r ops) =>
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ([[(GHC.Types.Char)]]) r ops) =>
          Alloy ([[(GHC.Types.Char)]]) (((AST.Literal)) :- r) ops where
-  transform (_ :- rest) ops vr = transform rest ops vr
-instance (Alloy ([[(GHC.Types.Char)]]) r ops) =>
-         Alloy ([[(GHC.Types.Char)]]) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :- r) ops where
   transform (_ :- rest) ops vr = transform rest ops vr
 instance (Alloy ([[(GHC.Types.Char)]]) r ops) =>
          Alloy ([[(GHC.Types.Char)]]) (((AST.MkClosure)) :- r) ops where
@@ -3042,10 +2704,6 @@ instance (AlloyA ([[(GHC.Types.Char)]]) r ops) =>
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ([[(GHC.Types.Char)]]) r ops) =>
          AlloyA ([[(GHC.Types.Char)]]) (((AST.Literal)) :-* r) ops where
-  transformA (_ :-* rest) ops vr = transformA rest ops vr
-  transformM (_ :-* rest) ops vr = transformM rest ops vr
-instance (AlloyA ([[(GHC.Types.Char)]]) r ops) =>
-         AlloyA ([[(GHC.Types.Char)]]) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-* r) ops where
   transformA (_ :-* rest) ops vr = transformA rest ops vr
   transformM (_ :-* rest) ops vr = transformM rest ops vr
 instance (AlloyA ([[(GHC.Types.Char)]]) r ops) =>
@@ -3120,10 +2778,6 @@ instance (AlloyARoute ([[(GHC.Types.Char)]]) r ops) =>
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ([[(GHC.Types.Char)]]) r ops) =>
          AlloyARoute ([[(GHC.Types.Char)]]) (((AST.Literal)) :-@ r) ops where
-  transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
-  transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
-instance (AlloyARoute ([[(GHC.Types.Char)]]) r ops) =>
-         AlloyARoute ([[(GHC.Types.Char)]]) (((GHC.Maybe.Maybe [(GHC.Types.Char)])) :-@ r) ops where
   transformARoute (_ :-@ rest) ops vr = transformARoute rest ops vr
   transformMRoute (_ :-@ rest) ops vr = transformMRoute rest ops vr
 instance (AlloyARoute ([[(GHC.Types.Char)]]) r ops) =>

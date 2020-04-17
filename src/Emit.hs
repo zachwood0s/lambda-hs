@@ -96,7 +96,7 @@ instance DoCodegen S.MkClosure where
   codegen _ = return $ cons $ C.Int 0 0
 
 instance DoCodegen S.Lambda where 
-  codegen (S.Lambda env param body) = codegen body
+  codegen (S.Lambda param body) = codegen body
 
 instance DoCodegen S.Literal where 
   codegen (S.Float n) = return $ cons $ C.Float (F.Double n)
@@ -138,10 +138,10 @@ codegenClosure (S.MkClosure name lambda env) = do
     mkClosure fn env = do 
       struct name [fn, env]
       return $ ptrToName name
-    mkEnv (S.MkEnv names) = do 
-      struct "fake" (map (const double) names) 
-      return $ ptrToName "fake"
-    mkLambda (S.Lambda _ param body) envType = do
+    mkEnv (S.MkEnv env names) = do 
+      struct env (map (const double) names) 
+      return $ ptrToName env
+    mkLambda (S.Lambda param body) envType = do
       define double name fnargs bls 
       return $ ptrToFunc double types 
       where 
@@ -164,7 +164,7 @@ codegenTop e = case e of
 
 codegenMod :: AST.Module -> [S.Expr] -> IO AST.Module
 codegenMod mod fns = withContext $ \context -> do
-    print $ map eliminateLambdas fns
+    --print $ map eliminateLambdas fns
     llstr <- withModuleFromAST context newast moduleLLVMAssembly
     putStrLn $ BU.toString llstr
     return newast

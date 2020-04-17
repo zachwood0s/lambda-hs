@@ -27,7 +27,7 @@ abstraction = do
   backslash 
   arg <- identifier 
   dot 
-  (EAbs . ALambda) <$> Lambda Nothing arg <$> expr
+  (EAbs . ALambda) <$> Lambda arg <$> expr
 
 application :: Parser Expr 
 application = do 

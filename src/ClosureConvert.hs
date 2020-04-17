@@ -86,7 +86,7 @@ closureConvertM = applyBottomUpM2 closures app
   where 
     closures :: Abstraction -> ConvertM Abstraction
     closures abs = case abs of 
-      ALambda (Lambda _ param body) -> do
+      ALambda (Lambda param body) -> do
         env <- getNextEnv 
         lam <- getNextLam 
         let fv = freeVars abs
@@ -94,8 +94,8 @@ closureConvertM = applyBottomUpM2 closures app
         return 
           $ AClosure 
             $ MkClosure lam 
-              (Lambda (Just env) param body')
-              (MkEnv $ Set.toList fv)
+              (Lambda param body')
+              (MkEnv env $ Set.toList fv)
 
       _ -> return abs
 
@@ -119,21 +119,11 @@ liftClosuresM = applyBottomUpM lift
         updatedClosure = c { _lambda = body { _body = closureRef name } }
 
 
-liftClosures :: Expr -> [Declaration]
-liftClosures = map makeDecl . listifyDepth (const True)
-  where 
-    makeDecl :: MkClosure -> Declaration
-    makeDecl c@(MkClosure name body env) =
-      DFunction name c
-      where 
-        updatedClosure = c { _lambda = body { _body = closureRef name } }
-
 execLift :: Expr -> [Declaration]
 execLift e = execWriter (liftClosuresM e)
 
 eliminateLambdas :: Expr -> [Declaration]
 eliminateLambdas = execLift . closureConvert
-
 
 
 
