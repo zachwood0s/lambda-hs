@@ -16,12 +16,16 @@ import LLVM.AST
 import LLVM.AST.Type (ptr)
 import LLVM.AST.Global
 import qualified LLVM.AST as AST 
-
 import qualified LLVM.AST.Linkage as L
 import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.Attribute as A
 import qualified LLVM.AST.CallingConvention as CC
 import qualified LLVM.AST.FloatingPointPredicate as FP
+
+import qualified LLVM.IRBuilder.Instruction as IR
+import qualified LLVM.IRBuilder.Monad as IR
+import qualified LLVM.IRBuilder.Module as IR
+import qualified LLVM.IRBuilder.Constant as IR
 
 import Debug.Trace
 
@@ -29,6 +33,7 @@ import Debug.Trace
 -- Utilities 
 ------------------------
 
+{-
 strToBS :: String -> BS.ShortByteString
 strToBS = BS.toShort . BU.fromString
 
@@ -83,6 +88,12 @@ struct :: String -> [Type] -> LLVM ()
 struct name types = addDefn $ 
   TypeDefinition (Name $ strToBS name) 
     $ Just $ StructureType False types
+
+structAccess :: Int -> Operand -> Codegen Operand
+structAccess idx struct =
+  let zero   = int32 0
+      offset = int32 (fromIntegral idx) 
+  in instr $ gep struct [zero offset]
 
 fresh :: Codegen Word 
 fresh = do 
@@ -247,3 +258,4 @@ load ptr = instr $ Load False ptr Nothing 0 []
 
 toArgs :: [Operand] -> [(Operand, [A.ParameterAttribute])]
 toArgs = map (\x -> (x, []))
+-}
