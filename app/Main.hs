@@ -3,36 +3,37 @@ module Main where
 import Parser
 import ClosureConvert
 import Emit
-import Codegen
 
 import Control.Monad.Trans 
 import System.Console.Haskeline
 import System.IO
 import System.Environment
+import Data.Text.Lazy.IO as TIO
+
+import LLVM.Pretty (ppllvm)
 
 import qualified LLVM.AST as AST
 
 main :: IO ()
-main = runInputT defaultSettings (loop initModule)
+main = runInputT defaultSettings loop 
   where 
-    loop mod = do 
+    loop = do 
       minput <- getInputLine "ready> "
       case minput of 
         Nothing -> outputStrLn "Goodbye."
         Just input -> do 
-          modn <- liftIO $ process mod input
+          modn <- liftIO $ process input
           case modn of 
-            Just modn -> loop modn 
-            Nothing -> loop mod
+            Just modn -> loop 
+            Nothing -> loop 
 
-initModule :: AST.Module 
-initModule = emptyModule "my cool jit"
 
-process :: AST.Module -> String -> IO (Maybe AST.Module)
-process modo source = do 
+process :: String -> IO (Maybe AST.Module)
+process source = do 
   let res = parseToplevel source 
   case res of 
     Left err -> print err >> return Nothing
     Right ex -> do 
-      ast <- codegenMod modo ex 
+      let ast = codegenMod ex 
+      TIO.putStrLn (ppllvm ast)
       return $ Just ast

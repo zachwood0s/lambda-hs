@@ -46,6 +46,13 @@ packages:
       sha256: a28bf2ad67ec27ab69d3629bf4caa73108e9833360218e20a7b83ea1782365b1
   original:
     hackage: alloy-1.2.2
+- completed:
+    hackage: llvm-hs-pretty-0.9.0.0@sha256:b7a5de5f3dd97893d19d2b47af1e4dd8d075a5cf57062180a912d1f3ef1def60,1671
+    pantry-tree:
+      size: 4685
+      sha256: 8cf6d628bb4f962575ad0993bb1010e9989cea00b325b8a45ac35ac201061386
+  original:
+    hackage: llvm-hs-pretty-0.9.0.0
 snapshots:
 - completed:
     size: 489011

@@ -225,13 +225,27 @@ codegenTop :: S.Declaration -> LLVM ()
 codegenTop e = case e of 
   S.DFunction name closure -> codegenClosure closure >> return ()
 
-
 codegenMod :: [S.Expr] -> AST.Module
 codegenMod fns = 
   flip evalState (Env { _symbolTable = M.empty })
     $ IR.buildModuleT "test"
     $ do 
       mapM_ codegenTop (concatMap transforms fns)
+
+{-
+runLLVM :: AST.Module -> IR.IRBuilderT a m -> AST.Module 
+runLLVM mod (IR.IRBuilderT m) = execState m mod
+
+codegenMod :: AST.Module -> [S.Expr] -> IO AST.Module
+codegenMod mod fns = withContext $ \context ->
+  liftError $ withModuleFromAST context newast $ \m -> do
+    llstr <- moduleLLVMAssembly m
+    putStrLn llstr
+    return newast
+  where
+    modn    = mapM codegenTop fns
+    newast  = runLLVM mod modn
+    -}
 {-
 
 
