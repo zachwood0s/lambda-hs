@@ -20,11 +20,13 @@ import qualified Data.ByteString.UTF8 as BU
 import qualified Data.ByteString.Short as BS
 import Data.Word
 import Data.Int
+import Data.List
 import Control.Monad.Except
 import qualified Data.Map as M
 import GHC.Generics
 import Control.Monad.Except
 import Control.Monad.State
+import Debug.Trace
 
 import ClosureConvert
 import Utils
@@ -32,6 +34,7 @@ import qualified AST as S
 
 data Env = Env 
   { _symbolTable :: M.Map S.Name AST.Operand 
+  , _envTable :: M.Map S.Name S.MkEnv
   } deriving (Eq, Show)
 
 assign :: MonadState Env m => S.Name -> AST.Operand -> m ()
@@ -44,6 +47,17 @@ getvar var = do
   case M.lookup var syms of 
     Just x -> return x 
     nothing -> error $ "Local variable not in scope: " ++ show var
+
+addenv :: MonadState Env m => S.Name -> S.MkEnv -> m ()
+addenv name op = 
+  modify $ \env -> env { _envTable = M.insert name op (_envTable env) }
+
+getenv :: MonadState Env m => S.Name -> m (S.MkEnv)
+getenv env = do 
+  envs <- gets _envTable
+  case M.lookup env envs of 
+    Just x -> return x 
+    nothing -> error $ "Environment not in scope: " ++ show env
 
 type LLVM = IR.ModuleBuilderT (State Env)
 type Codegen = IR.IRBuilderT LLVM
@@ -93,7 +107,6 @@ cgen (S.Application fn args) = do
 
 
 
-
 instance DoCodegen S.Expr where 
   codegen expr = S.process expr 
 -}
@@ -114,7 +127,12 @@ instance DoCodegen S.Assign where
 
 instance DoCodegen S.Var where 
   codegen (S.Var x) = getvar x 
-  codegen (S.EnvRef _ x) = getvar x  -- TODO: update this to new type
+  codegen (S.EnvRef env x) = do 
+    (S.MkEnv name bindings) <- getenv env
+    case elemIndex x bindings of 
+      Just idx -> structAccess "env" idx
+      Nothing -> error $ "Accessing var not in environment "++x
+    
 
 instance DoCodegen S.App where 
   codegen (S.App a _) = codegen a -- TODO: make exception stuff
@@ -134,6 +152,23 @@ instance DoCodegen S.Lambda where
 instance DoCodegen S.Literal where 
   codegen (S.Float n) = return $ IR.double n
 
+structAccess :: S.Name -> Int -> Codegen AST.Operand 
+structAccess name idx = do 
+  e <- getvar name 
+  let zero = IR.int32 0
+      offset = IR.int32 (fromIntegral idx)
+  IR.gep e [zero, offset]
+
+codegenBuiltIn :: (String, [AST.Type], AST.Type) -> LLVM ()
+codegenBuiltIn (name, argtys, retty) = do 
+  func <- IR.extern (AST.mkName name) argtys retty 
+  assign name func
+
+builtIns :: [(String, [AST.Type], AST.Type)]
+builtIns = 
+  [ ("malloc", [AST.i32], AST.ptr AST.i8)
+  ]
+  
 {-
 
 storeEnv :: S.MkEnv -> AST.Operand -> Codegen AST.Operand 
@@ -198,9 +233,10 @@ codegenClosure (S.MkClosure name lambda env) = do
     mkClosure fn env = do 
       emitTypeDef name [fn, env]
       return $ ptrToName name
-    mkEnv (S.MkEnv env names) = do 
-      emitTypeDef env (map (const AST.double) names) 
-      return $ ptrToName env
+    mkEnv (S.MkEnv envName names) = do 
+      emitTypeDef envName (map (const AST.double) names) 
+      addenv envName env
+      return $ ptrToName envName
     mkLambda (S.Lambda param body) envType = mdo
       assign name function 
       function <- locally $ do 
@@ -225,11 +261,19 @@ codegenTop :: S.Declaration -> LLVM ()
 codegenTop e = case e of 
   S.DFunction name closure -> codegenClosure closure >> return ()
 
+
+charStar :: AST.Type
+charStar = AST.ptr AST.i8
+
 codegenMod :: [S.Expr] -> AST.Module
 codegenMod fns = 
-  flip evalState (Env { _symbolTable = M.empty })
+  flip evalState (Env { _symbolTable = M.empty , _envTable = M.empty })
     $ IR.buildModuleT "test"
     $ do 
+      printf <- IR.externVarArgs (AST.mkName "printf") [charStar] AST.i32
+      assign "printf" printf
+      trace (show (concatMap transforms fns)) $ 
+        mapM_ codegenBuiltIn builtIns
       mapM_ codegenTop (concatMap transforms fns)
 
 {-
@@ -269,3 +313,4 @@ codegenTop exp = case exp of
         -}
 transforms :: S.Expr -> [S.Declaration]
 transforms = eliminateLambdas
+
