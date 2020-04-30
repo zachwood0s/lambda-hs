@@ -36,6 +36,11 @@ library:
     - extra
     - alloy 
     - ghc-prim
+    - llvm-hs-pretty 
+    - directory
+    - unix
+    - process
+    - text
 
 executables:
   lambda-hs-exe:
@@ -68,6 +73,21 @@ executables:
     dependencies: 
     - alloy
     - lambda-hs
+
+  compile-exe:
+    main:        Main.hs
+    source-dirs: compile
+    ghc-options: 
+    - -threaded 
+    - -rtsopts 
+    - -with-rtsopts=-N
+    dependencies: 
+    - optparse-applicative
+    - pretty-simple
+    - lambda-hs
+    - text
+    - llvm-hs-pretty
+    - prettyprinter
 
 tests:
   lambda-hs-test:

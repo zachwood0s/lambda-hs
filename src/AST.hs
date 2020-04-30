@@ -15,6 +15,22 @@ type VarSet = Set.Set Name
 
 newtype AllVarSet = All { unAllSet :: VarSet }
 
+data Type 
+  = TyBool
+  | TyChar 
+  | TyInt
+  | TyFloat
+  | TyVoid 
+  | TyPtr Type
+  | TyStruct Name
+  deriving (Show, Eq, Ord, Typeable, Data)
+
+data Bind = Bind { bindType :: Type, bindName :: Name }
+  deriving (Show, Eq, Ord, Typeable, Data)
+
+data Struct = Struct { structName :: Name, structFields :: [Bind] }
+  deriving (Show, Eq, Ord, Typeable, Data)
+
 data Module = Module 
   { declarations :: [Declaration]
   , name :: Name
@@ -55,19 +71,14 @@ data Abstraction
 data MkClosure = MkClosure 
   { _name :: Name 
   , _lambda :: Lambda 
-  , _env :: MkEnv
+  , _env :: Struct
   } | 
-  ClosureRef Name 
+  ClosureRef Name Env
   deriving (Show, Eq, Ord, Typeable, Data)
   
 data Lambda = Lambda
   { _param :: Name 
   , _body :: Expr 
-  } deriving (Show, Eq, Ord, Typeable, Data)
-
-data MkEnv = MkEnv 
-  { _envName :: Env
-  , _bindings :: [Name]
   } deriving (Show, Eq, Ord, Typeable, Data)
   
 data Literal 
@@ -176,8 +187,8 @@ instance FreeVars Literal where
 var :: Name -> Expr
 var = EVar . Var
 
-closureRef :: Name -> Expr
-closureRef = EAbs . AClosure . ClosureRef
+closureRef :: Name -> Env -> Expr
+closureRef closure env = EAbs $ AClosure $ ClosureRef closure env
 
 envRef :: Env -> Name -> Expr
 envRef env var = EVar $ EnvRef env var
@@ -185,7 +196,7 @@ envRef env var = EVar $ EnvRef env var
 lambda :: Name -> Expr -> Expr
 lambda param body = EAbs $ ALambda $ Lambda param body
 
-closure :: Name -> Env -> Name -> Expr -> MkEnv -> Expr
+closure :: Name -> Env -> Name -> Expr -> Struct -> Expr
 closure name envName param body env = 
   EAbs $ AClosure $ MkClosure name (Lambda param body) env
 

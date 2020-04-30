@@ -25,6 +25,7 @@ type ConvertM a = State ConversionState a
 -- Utils
 -----------------------------
 
+
 -- | Creates an environment name from id
 makeEnvName :: Int -- ^ environment id
             -> Env -- ^ created name 
@@ -95,7 +96,7 @@ closureConvertM = applyBottomUpM2 closures app
           $ AClosure 
             $ MkClosure lam 
               (Lambda param body')
-              (MkEnv env $ Set.toList fv)
+              (Struct env $ map (Bind TyFloat) $ Set.toList fv)
 
       _ -> return abs
 
@@ -114,9 +115,9 @@ liftClosuresM = applyBottomUpM lift
     lift :: MkClosure -> LiftM MkClosure
     lift c@(MkClosure name body env) = do
       tell [DFunction name c]
-      return $ ClosureRef name
+      return $ ClosureRef name (structName env) 
       where 
-        updatedClosure = c { _lambda = body { _body = closureRef name } }
+        updatedClosure = c { _lambda = body { _body = closureRef name (structName env)} }
 
 
 execLift :: Expr -> [Declaration]
@@ -124,6 +125,12 @@ execLift e = execWriter (liftClosuresM e)
 
 eliminateLambdas :: Expr -> [Declaration]
 eliminateLambdas = execLift . closureConvert
+
+{-
+closureConvert = id
+eliminateLambdas = const []
+closureConvertM a = return a
+-}
 
 
 

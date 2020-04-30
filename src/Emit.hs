@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, DefaultSignatures, RecursiveDo, OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, DefaultSignatures, RecursiveDo, OverloadedStrings, TupleSections #-}
 module Emit where
 
 import LLVM.Module
@@ -34,7 +34,7 @@ import qualified AST as S
 
 data Env = Env 
   { _symbolTable :: M.Map S.Name AST.Operand 
-  , _envTable :: M.Map S.Name S.MkEnv
+  , _structs :: [S.Struct]
   } deriving (Eq, Show)
 
 assign :: MonadState Env m => S.Name -> AST.Operand -> m ()
@@ -48,16 +48,16 @@ getvar var = do
     Just x -> return x 
     nothing -> error $ "Local variable not in scope: " ++ show var
 
-addenv :: MonadState Env m => S.Name -> S.MkEnv -> m ()
-addenv name op = 
-  modify $ \env -> env { _envTable = M.insert name op (_envTable env) }
+addstruct :: MonadState Env m => S.Struct -> m ()
+addstruct op = 
+  modify $ \env -> env { _structs = op : (_structs env) }
 
-getenv :: MonadState Env m => S.Name -> m (S.MkEnv)
-getenv env = do 
-  envs <- gets _envTable
-  case M.lookup env envs of 
-    Just x -> return x 
-    nothing -> error $ "Environment not in scope: " ++ show env
+getFields :: MonadState Env m => S.Name -> m [S.Bind]
+getFields name = do 
+  ss <- gets _structs 
+  case find (\s -> S.structName s == name) ss of 
+    Nothing -> error $ "Internal error - struct not found: " ++ show name
+    Just (S.Struct _ binds) -> pure binds
 
 type LLVM = IR.ModuleBuilderT (State Env)
 type Codegen = IR.IRBuilderT LLVM
@@ -128,8 +128,8 @@ instance DoCodegen S.Assign where
 instance DoCodegen S.Var where 
   codegen (S.Var x) = getvar x 
   codegen (S.EnvRef env x) = do 
-    (S.MkEnv name bindings) <- getenv env
-    case elemIndex x bindings of 
+    bindings <- getFields env
+    case elemIndex x (map S.bindName bindings) of 
       Just idx -> structAccess "env" idx
       Nothing -> error $ "Accessing var not in environment "++x
     
@@ -143,7 +143,36 @@ instance DoCodegen S.App where
 instance DoCodegen S.Abstraction -- Uses generic instance
 
 instance DoCodegen S.MkClosure where 
-  codegen (S.ClosureRef x) = return $ IR.int8 0
+  codegen (S.ClosureRef closure envName) = do
+    -- Allocate both the closure and the environment
+    c <- malloc (S.TyStruct closure)
+    e <- malloc (S.TyStruct envName)
+
+    -- Get all the environment fields and store them in the environment
+    fields <- getFields envName
+    mapM (storeEnvVars e) $ zip [1..] fields
+
+    envField <- structAccess' c 1
+    IR.store envField 0 e
+
+    closField <- structAccess' c 0
+    func <- getvar closure
+    IR.store closField 0 func
+    return c
+
+    where 
+      storeEnvVars envOp (idx, S.Bind ty var) = do
+        syms <- gets _symbolTable 
+        rhs <- if M.member var syms then codegen (S.Var var)
+               else codegen (S.EnvRef envName var)
+
+        lhs <- structAccess' envOp idx
+        IR.store lhs 0 rhs
+
+
+
+        
+    
   codegen _ = return $ IR.int8 0
 
 instance DoCodegen S.Lambda where 
@@ -152,12 +181,27 @@ instance DoCodegen S.Lambda where
 instance DoCodegen S.Literal where 
   codegen (S.Float n) = return $ IR.double n
 
+malloc :: S.Type -> Codegen AST.Operand 
+malloc ty = do 
+  size <- sizeofOp ty 
+  e <- call "malloc" [size]
+  ltypeOfType (S.TyPtr ty) >>= IR.bitcast e 
+
 structAccess :: S.Name -> Int -> Codegen AST.Operand 
-structAccess name idx = do 
-  e <- getvar name 
+structAccess name idx = getvar name >>= \e -> structAccess' e idx
+
+structAccess' :: AST.Operand -> Int -> Codegen AST.Operand
+structAccess' e idx = do
   let zero = IR.int32 0
       offset = IR.int32 (fromIntegral idx)
   IR.gep e [zero, offset]
+
+call :: S.Name -> [AST.Operand] -> Codegen AST.Operand
+call fun es = do 
+  f <- getvar fun 
+  let es' = map (, []) es
+  IR.call f es'
+  
 
 codegenBuiltIn :: (String, [AST.Type], AST.Type) -> LLVM ()
 codegenBuiltIn (name, argtys, retty) = do 
@@ -214,8 +258,35 @@ ptrToName name = AST.ptr $ AST.NamedTypeReference (AST.mkName name)
 ptrToFunc :: AST.Type -> [AST.Type] -> AST.Type 
 ptrToFunc ret args = AST.ptr $ AST.FunctionType ret args False
 
-ltypeOfType :: MonadState Env m => m AST.Type 
-ltypeOfType = pure AST.double
+ltypeOfType :: MonadState Env m => S.Type -> m AST.Type 
+ltypeOfType ty = case ty of 
+  S.TyFloat -> pure AST.double
+  S.TyInt -> pure AST.i32
+  S.TyVoid -> pure AST.void 
+  S.TyChar -> pure AST.i8
+  S.TyBool -> pure AST.i1
+  S.TyPtr (S.TyStruct n) -> 
+    pure $ AST.ptr (AST.NamedTypeReference (AST.mkName $ "struct." <> n))
+  S.TyPtr t -> fmap AST.ptr (ltypeOfType t)
+  S.TyStruct n -> do 
+    fields <- getFields n
+    typs <- mapM (ltypeOfType . S.bindType) fields 
+    pure $ AST.StructureType {AST.isPacked = True, AST.elementTypes = typs }
+
+sizeof :: MonadState Env m => S.Type -> m Word32
+sizeof ty = case ty of 
+  S.TyBool -> pure 1
+  S.TyChar -> pure 1 
+  S.TyInt -> pure 4
+  S.TyFloat -> pure 8
+  S.TyVoid -> pure 0
+  S.TyStruct n -> do 
+    fields <- getFields n 
+    sizes <- mapM (sizeof . S.bindType) fields 
+    pure (sum sizes)
+
+sizeofOp :: S.Type -> Codegen AST.Operand 
+sizeofOp ty = IR.int32 . fromIntegral <$> sizeof ty
 
 
 emitTypeDef :: S.Name -> [AST.Type] -> LLVM AST.Type 
@@ -230,17 +301,21 @@ codegenClosure (S.MkClosure name lambda env) = do
   let fnType = ptrToFunc AST.double [envType, AST.double]
   mkClosure fnType envType
   where 
-    mkClosure fn env = do 
-      emitTypeDef name [fn, env]
+    mkClosure fn env' = do 
+      emitTypeDef name [fn, env']
+      addstruct $ S.Struct name 
+        [ S.Bind S.TyInt "fn" 
+        , S.Bind (S.TyStruct (S.structName env)) "env"
+        ]
       return $ ptrToName name
-    mkEnv (S.MkEnv envName names) = do 
+    mkEnv (S.Struct envName names) = do 
       emitTypeDef envName (map (const AST.double) names) 
-      addenv envName env
+      addstruct env
       return $ ptrToName envName
     mkLambda (S.Lambda param body) envType = mdo
       assign name function 
       function <- locally $ do 
-        retty <- ltypeOfType 
+        retty <- ltypeOfType S.TyFloat
         IR.function (AST.mkName name) fnargs retty genBody
       return ()
       where 
@@ -255,7 +330,7 @@ codegenClosure (S.MkClosure name lambda env) = do
             IR.store addr 0 op 
             assign n addr
 
-          codegen body >> return ()
+          codegen body >>= IR.ret
 
 codegenTop :: S.Declaration -> LLVM ()
 codegenTop e = case e of 
@@ -267,7 +342,7 @@ charStar = AST.ptr AST.i8
 
 codegenMod :: [S.Expr] -> AST.Module
 codegenMod fns = 
-  flip evalState (Env { _symbolTable = M.empty , _envTable = M.empty })
+  flip evalState (Env { _symbolTable = M.empty , _structs = [] })
     $ IR.buildModuleT "test"
     $ do 
       printf <- IR.externVarArgs (AST.mkName "printf") [charStar] AST.i32
