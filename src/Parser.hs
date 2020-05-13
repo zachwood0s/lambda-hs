@@ -7,11 +7,27 @@ import Text.Parsec.String (Parser)
 import qualified Text.Parsec.Expr as Ex 
 import qualified Text.Parsec.Token as Tok
 
+import Control.Monad (void)
+import Data.Functor.Identity
+
 import AST 
 import Lexer
 
 expr :: Parser Expr 
-expr = Ex.buildExpressionParser [[]] application
+expr = Ex.buildExpressionParser table expr'
+
+table = [ [functionOp ]
+        ]
+
+functionOp :: Ex.Operator String () Identity Expr 
+functionOp = Ex.Infix spacef Ex.AssocLeft
+
+spacef = 
+  Tok.whiteSpace lexer
+  >> return (\x y -> EApp $ App x y)
+
+expr' :: Parser Expr 
+expr' = factor
 
 int :: Parser Expr 
 int = (ELit . Int) <$> integer
@@ -29,15 +45,14 @@ abstraction = do
   dot 
   (EAbs . ALambda) <$> Lambda arg <$> expr
 
-application :: Parser Expr 
-application = do 
-  chainl1 factor $ optional space >> return (\x y -> EApp $ App x y)
-
 assignment :: Parser Expr 
 assignment = do 
+  reserved "let"
+  Tok.whiteSpace lexer
   name <- identifier
   equals 
-  EAssign <$> Assign name <$> expr
+  e <- expr 
+  return $ EAssign $ Assign name e
 
 factor :: Parser Expr 
 factor = try floating 
@@ -53,11 +68,15 @@ contents p = do
   eof 
   return r
 
-toplevel :: Parser [Expr]
-toplevel = sepEndBy assignment (char '\n')
+eol :: Parser ()
+eol = void (char '\n') <|> eof
 
-parseExpr :: String -> Either ParseError Expr 
-parseExpr = parse (contents expr) "<stdin>"
+toplevel :: Parser [Expr]
+toplevel = many $ do 
+  a <- assignment
+  semi 
+  return a
 
 parseToplevel :: String -> Either ParseError [Expr]
 parseToplevel = parse (contents toplevel) "<stdin>"
+

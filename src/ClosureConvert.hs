@@ -2,7 +2,7 @@
 
 module ClosureConvert 
   ( closureConvert, closureConvertM
-  , eliminateLambdas
+  , lambdaLift
   ) where
 
 import Control.Monad.State.Lazy
@@ -66,6 +66,9 @@ getNextLam = do
 -- Conversion
 -----------------------------
 
+builtIns = Set.fromList 
+  ["print"]
+
 makeEnvRefCalls :: Env -> VarSet -> Expr -> Expr
 makeEnvRefCalls env fv = makeRecurse ops
   where 
@@ -79,7 +82,8 @@ makeEnvRefCalls env fv = makeRecurse ops
     
     replace :: Var -> Var
     replace e = case e of 
-      Var n | Set.member n fv -> EnvRef env n
+      Var n | Set.member n fv 
+            && not (Set.member n builtIns) -> EnvRef env n
       _ -> e
 
 closureConvertM :: Expr -> ConvertM Expr
@@ -120,11 +124,11 @@ liftClosuresM = applyBottomUpM lift
         updatedClosure = c { _lambda = body { _body = closureRef name (structName env)} }
 
 
-execLift :: Expr -> [Declaration]
-execLift e = execWriter (liftClosuresM e)
+lambdaLift :: Expr -> [Declaration]
+lambdaLift e = execWriter (liftClosuresM e)
 
-eliminateLambdas :: Expr -> [Declaration]
-eliminateLambdas = execLift . closureConvert
+--eliminateLambdas :: Expr -> [Declaration]
+--eliminateLambdas = execLift . closureConvert
 
 {-
 closureConvert = id

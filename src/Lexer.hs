@@ -42,3 +42,6 @@ equals = Tok.symbol lexer "="
 
 dot :: Parser String
 dot = Tok.dot lexer
+
+semi :: Parser String
+semi = Tok.semi lexer

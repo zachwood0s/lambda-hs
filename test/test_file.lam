@@ -1,2 +1,2 @@
-
-a = \x. \y. x
+let a = \x. \y. print x;
+let main = \_. a 10.0;

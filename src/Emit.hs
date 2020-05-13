@@ -29,6 +29,7 @@ import Control.Monad.State
 import Debug.Trace
 
 import ClosureConvert
+import ConvertFuncAssign
 import Utils
 import qualified AST as S
 
@@ -68,48 +69,46 @@ strToBS = BS.toShort . BU.fromString
 bsToStr :: BS.ShortByteString -> String 
 bsToStr = BU.toString . BS.fromShort
 
+{--------------------
+Basic Type Handling
+---------------------}
 
-{-
-codegenTop (S.Abstraction name body) = do
-  define double name fnargs bls
-  where 
-    fnargs = toSig args
-    bls = createBlocks $ execCodegen $ do
-      entry <- addBlock entryBlockName
-      setBlock entry
-      forM args $ \a -> do
-	var <- alloca double
-	store var (local (AST.Name a))
-	assign a var
-      cgen body >>= ret
+instance HasType a => S.GProcess (K1 i a) S.Type where 
+  gprocess (K1 x) = getType x
 
-codegenTop (S.Extern name args) = do
-  external double name fnargs
-  where fnargs = toSig args
+class HasType a where 
+  getType :: a -> S.Type 
+  default getType :: (Generic a, S.GProcess (Rep a) S.Type) 
+                  => a -> S.Type 
+  getType = S.process
 
-codegenTop exp = do
-  define double "main" [] blks
-  where 
-    blks = createBlocks $ execCodegen $ do
-      entry <- addBlock entryBlockName
-      setBlock entry
-      cgen exp >>= ret
+instance HasType S.Expr -- Uses generic instance
 
-toSig :: [String] -> [(AST.Type, AST.Name)]
-toSig = map (\x -> (double, AST.Name x))
+instance HasType S.Assign where 
+  getType (S.Assign _ e) = getType e
 
-cgen :: S.Expr -> Codegen AST.Operand
-cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
-cgen (S.Var x) = getvar >>= (flip load 0)
-cgen (S.Application fn args) = do
-  largs <- mapM cgen args
-  call (externf (AST.Name fn)) largs
+instance HasType S.Var where 
+  getType (S.Var x) = S.TyFloat
+  getType (S.EnvRef env x) = S.TyFloat
 
+instance HasType S.App where 
+  getType (S.App a _) = getType a
+  getType (S.AppC a _) = getType a
 
+instance HasType S.Abstraction -- Uses generic instance
 
-instance DoCodegen S.Expr where 
-  codegen expr = S.process expr 
--}
+instance HasType S.MkClosure where 
+  getType (S.ClosureRef closure envName) = S.TyPtr $ S.TyStruct closure
+
+instance HasType S.Lambda where 
+  getType (S.Lambda param body) = getType body
+
+instance HasType S.Literal where 
+  getType _ = S.TyFloat
+
+{--------------------
+Codegen
+---------------------}
 
 instance DoCodegen a => S.GProcess (K1 i a) (Codegen AST.Operand) where 
   gprocess (K1 x) = codegen x
@@ -130,7 +129,11 @@ instance DoCodegen S.Var where
   codegen (S.EnvRef env x) = do 
     bindings <- getFields env
     case elemIndex x (map S.bindName bindings) of 
-      Just idx -> structAccess "env" idx
+      Just idx -> do 
+        var <- getvar "env"
+        struct <- IR.load var 0
+        acc <- structAccess' struct idx
+        IR.load acc 0
       Nothing -> error $ "Accessing var not in environment "++x
     
 
@@ -150,7 +153,7 @@ instance DoCodegen S.MkClosure where
 
     -- Get all the environment fields and store them in the environment
     fields <- getFields envName
-    mapM (storeEnvVars e) $ zip [1..] fields
+    mapM (storeEnvVars e) $ zip [0..] fields
 
     envField <- structAccess' c 1
     IR.store envField 0 e
@@ -166,13 +169,12 @@ instance DoCodegen S.MkClosure where
         rhs <- if M.member var syms then codegen (S.Var var)
                else codegen (S.EnvRef envName var)
 
-        lhs <- structAccess' envOp idx
-        IR.store lhs 0 rhs
+        loadedRhs <- IR.load rhs 0
 
+        lhs <- structAccess' envOp idx 
 
+        IR.store lhs 0 loadedRhs
 
-        
-    
   codegen _ = return $ IR.int8 0
 
 instance DoCodegen S.Lambda where 
@@ -211,46 +213,9 @@ codegenBuiltIn (name, argtys, retty) = do
 builtIns :: [(String, [AST.Type], AST.Type)]
 builtIns = 
   [ ("malloc", [AST.i32], AST.ptr AST.i8)
+  , ("print", [AST.double], AST.double)
   ]
   
-{-
-
-storeEnv :: S.MkEnv -> AST.Operand -> Codegen AST.Operand 
-storeEnv (S.MkEnv _ bindings) ptr = mapM storeMember (zip [1..] bindings)
-  where 
-    storeMember (idx, name) = do 
-      val <- structAccess idx ptr
-      store val (local (AST.Name name))
-      -}
-
-
-{-
-
-
-
-
-
-instance DoCodegen S.MkClosure where 
-  codegen (S.MkClosure name lambda env) = 
-    define double name [fnarg] bls 
-    where 
-      fnarg = (double, AST.Name $ strToBS (S._param lambda))   -- TODO: Change with type system
-      bls = createBlocks $ execCodegen $ do
-        entry <- addBlock entryBlockName 
-        setBlock entry 
-        forM args $ \a -> do
-          var <- alloca double
-          store var (local (AST.Name $ strToBS a))
-          assign a var
-        codegen lambda >>= ret
-
-instance DoCodegen S.Lambda where 
-  codegen (S.Lambda env param body) = codegen body
-
-instance DoCodegen S.Literal where 
-  codegen (S.Float n) = return $ cons $ C.Float (F.Double n)
-  -- TODO: Add other literal
--}
 
 ptrToName :: S.Name -> AST.Type 
 ptrToName name = AST.ptr $ AST.NamedTypeReference (AST.mkName name)
@@ -266,7 +231,7 @@ ltypeOfType ty = case ty of
   S.TyChar -> pure AST.i8
   S.TyBool -> pure AST.i1
   S.TyPtr (S.TyStruct n) -> 
-    pure $ AST.ptr (AST.NamedTypeReference (AST.mkName $ "struct." <> n))
+    pure $ AST.ptr (AST.NamedTypeReference (AST.mkName ("struct."<>n)))
   S.TyPtr t -> fmap AST.ptr (ltypeOfType t)
   S.TyStruct n -> do 
     fields <- getFields n
@@ -280,6 +245,7 @@ sizeof ty = case ty of
   S.TyInt -> pure 4
   S.TyFloat -> pure 8
   S.TyVoid -> pure 0
+  S.TyPtr _ -> pure 8
   S.TyStruct n -> do 
     fields <- getFields n 
     sizes <- mapM (sizeof . S.bindType) fields 
@@ -296,36 +262,40 @@ emitTypeDef name fieldTys = do
 
 codegenClosure :: S.MkClosure -> LLVM (AST.Type)
 codegenClosure (S.MkClosure name lambda env) = do
-  envType <- mkEnv env 
+  mkEnv env 
+  let envType = S.TyPtr $ S.TyStruct (S.structName env)
+  e <- ltypeOfType envType
   mkLambda lambda envType
-  let fnType = ptrToFunc AST.double [envType, AST.double]
+  let fnType = ptrToFunc AST.double [e, AST.double]
   mkClosure fnType envType
   where 
     mkClosure fn env' = do 
-      emitTypeDef name [fn, env']
+      ty <- ltypeOfType env'
+      emitTypeDef name [fn, ty]
       addstruct $ S.Struct name 
         [ S.Bind S.TyInt "fn" 
-        , S.Bind (S.TyStruct (S.structName env)) "env"
+        , S.Bind env' "env"
         ]
       return $ ptrToName name
     mkEnv (S.Struct envName names) = do 
+      let envName' = envName
       emitTypeDef envName (map (const AST.double) names) 
       addstruct env
-      return $ ptrToName envName
     mkLambda (S.Lambda param body) envType = mdo
       assign name function 
       function <- locally $ do 
-        retty <- ltypeOfType S.TyFloat
-        IR.function (AST.mkName name) fnargs retty genBody
+        retty <- ltypeOfType (getType body)
+        let args = [S.Bind envType "env", S.Bind S.TyFloat param]
+        params <- mapM mkParam args
+        IR.function name' params retty (genBody args)
       return ()
       where 
-        args = ["env", param]
-        types = [envType, AST.double]
-        fnargs = zip types (map (IR.ParameterName . strToBS) args)
-        genBody :: [AST.Operand] -> Codegen ()
-        genBody ops = do 
+        name' = AST.mkName name
+        mkParam (S.Bind t n) = (,) <$> ltypeOfType t <*> pure (IR.ParameterName $ strToBS n)
+        genBody :: [S.Bind] -> [AST.Operand] -> Codegen ()
+        genBody args ops = do 
           _entry <- IR.block `IR.named` "entry"
-          forM_ (zip ops args) $ \(op, n) -> do 
+          forM_ (zip ops args) $ \(op, S.Bind _ n) -> do 
             addr <- IR.alloca (typeOf op) Nothing 0
             IR.store addr 0 op 
             assign n addr
@@ -351,41 +321,6 @@ codegenMod fns =
         mapM_ codegenBuiltIn builtIns
       mapM_ codegenTop (concatMap transforms fns)
 
-{-
-runLLVM :: AST.Module -> IR.IRBuilderT a m -> AST.Module 
-runLLVM mod (IR.IRBuilderT m) = execState m mod
-
-codegenMod :: AST.Module -> [S.Expr] -> IO AST.Module
-codegenMod mod fns = withContext $ \context ->
-  liftError $ withModuleFromAST context newast $ \m -> do
-    llstr <- moduleLLVMAssembly m
-    putStrLn llstr
-    return newast
-  where
-    modn    = mapM codegenTop fns
-    newast  = runLLVM mod modn
-    -}
-{-
-
-
-codegenTop :: S.Expr -> LLVM ()
-codegenTop exp = case exp of 
-  S.EAbs name body -> do 
-    define double name fnargs bls 
-    where 
-      fnargs = toSig args 
-      bls = createBlocks $ execCodegen $ do 
-        entry <- addBlock entryBlockName 
-        setBlock entry 
-        forM args $ \a -> do
-          var <- alloca double 
-          store var (local (AST.Name a))
-          assign a var 
-        cgen body >>= ret
-
-
-
-        -}
 transforms :: S.Expr -> [S.Declaration]
-transforms = eliminateLambdas
+transforms = lambdaLift . convertFuncAssign . closureConvert
 

@@ -9,19 +9,19 @@ import System.IO
 import System.Directory
 import System.Process
 import System.Posix.Temp
+import Debug.Trace
 
 import Control.Exception (bracket)
 
 compile :: Module -> FilePath -> IO ()
-compile llvmModule outfile = 
-  bracket (mkdtemp "build") removePathForcibly $ \buildDir -> 
+compile llvmModule outfile = do
+  bracket (mkdtemp "build") removePathForcibly $ \buildDir ->
     withCurrentDirectory buildDir $ do 
       (llvm, llvmHandle) <- mkstemps "output" ".ll"
       let runtime = "../src/runtime.c"
 
       hPutStrLn llvmHandle (unpack $ ppllvm llvmModule)
       hClose llvmHandle
-
       callProcess
         "clang"
         ["-Wno-override-module", "-lm", llvm, runtime, "-o", "../" <> outfile]
