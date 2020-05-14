@@ -2,6 +2,7 @@
 
 module ClosureConvert 
   ( closureConvert, closureConvertM
+  , closureConverts
   , lambdaLift
   ) where
 
@@ -66,7 +67,7 @@ getNextLam = do
 -- Conversion
 -----------------------------
 
-builtIns = Set.fromList 
+builtIns = Set.fromList
   ["print"]
 
 makeEnvRefCalls :: Env -> VarSet -> Expr -> Expr
@@ -82,12 +83,11 @@ makeEnvRefCalls env fv = makeRecurse ops
     
     replace :: Var -> Var
     replace e = case e of 
-      Var n | Set.member n fv 
-            && not (Set.member n builtIns) -> EnvRef env n
+      Var n | Set.member n fv -> EnvRef env n
       _ -> e
 
 closureConvertM :: Expr -> ConvertM Expr
-closureConvertM = applyBottomUpM2 closures app
+closureConvertM = applyBottomUpM closures
   where 
     closures :: Abstraction -> ConvertM Abstraction
     closures abs = case abs of 
@@ -96,32 +96,36 @@ closureConvertM = applyBottomUpM2 closures app
         lam <- getNextLam 
         let fv = freeVars abs
         let body' = makeEnvRefCalls env fv body 
+        let filtered = filter (flip Set.notMember builtIns) (Set.toList fv)
         return 
           $ AClosure 
             $ MkClosure lam 
               (Lambda param body')
-              (Struct env $ map (Bind TyFloat) $ Set.toList fv)
+              (Struct env $ map (Bind TyFloat) filtered)
 
       _ -> return abs
-
-    app :: App -> ConvertM App 
-    app a = case a of 
-      App a b -> return $ AppC a b
-      _ -> return a
 
 closureConvert :: Expr -> Expr 
 closureConvert e = evalState (closureConvertM e) emptyConvState
 
+closureConverts :: [Expr] -> [Expr]
+closureConverts es = evalState (mapM closureConvertM es) emptyConvState
+
 type LiftM = Writer [Declaration]
 liftClosuresM :: Expr -> LiftM Expr
-liftClosuresM = applyBottomUpM lift 
+liftClosuresM = applyBottomUpM2 liftC liftF
   where 
-    lift :: MkClosure -> LiftM MkClosure
-    lift c@(MkClosure name body env) = do
-      tell [DFunction name c]
+    liftC :: MkClosure -> LiftM MkClosure
+    liftC c@(MkClosure name body env) = do
+      tell [DClosure name c]
       return $ ClosureRef name (structName env) 
       where 
         updatedClosure = c { _lambda = body { _body = closureRef name (structName env)} }
+    liftF :: Function -> LiftM Function
+    liftF c@(Function name body) = do
+      tell [DFunction name c]
+      return c
+
 
 
 lambdaLift :: Expr -> [Declaration]

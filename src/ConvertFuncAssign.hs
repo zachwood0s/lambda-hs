@@ -18,7 +18,7 @@ import ASTInstances
 
 renameFuncAssign :: Assign -> Assign
 renameFuncAssign (Assign name (EAbs (AClosure (MkClosure _ body env)))) =
-  Assign name (EAbs (AClosure (MkClosure name body env)))
+  Assign name (EAbs (AFunc (Function name body)))
 renameFuncAssign e = e
 
 

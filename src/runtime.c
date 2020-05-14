@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 double print(double c){
-  printf("%f", c);
+  printf("%f\n", c);
   return c;
 }
+

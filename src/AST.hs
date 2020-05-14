@@ -37,7 +37,8 @@ data Module = Module
   } deriving (Show, Eq, Ord, Typeable, Data)
 
 data Declaration
-  = DFunction Name MkClosure
+  = DClosure Name MkClosure
+  | DFunction Name Function
   deriving (Show, Eq, Ord, Typeable, Data)
 
 data Expr 
@@ -66,7 +67,13 @@ data App
 data Abstraction 
   = AClosure MkClosure 
   | ALambda Lambda
+  | AFunc Function
   deriving (Show, Eq, Ord, Typeable, Data, Generic)
+
+data Function = Function 
+  { _fname :: Name 
+  , _flambda :: Lambda 
+  } deriving (Show, Eq, Ord, Typeable, Data)
 
 data MkClosure = MkClosure 
   { _name :: Name 
@@ -135,6 +142,9 @@ instance AllVars App where
 
 instance AllVars Abstraction -- Uses generic instance
 
+instance AllVars Function where 
+  allVars (Function _ e) = allVars e
+
 instance AllVars MkClosure where 
   allVars (MkClosure _ e _) = allVars e
 
@@ -170,6 +180,9 @@ instance FreeVars App where
   freeVars (AppC a b) = freeVars a `Set.union` freeVars b
 
 instance FreeVars Abstraction -- Uses generic instance
+
+instance FreeVars Function where 
+  freeVars (Function _ e) = freeVars e
 
 instance FreeVars MkClosure where 
   freeVars (MkClosure _ e _) = freeVars e

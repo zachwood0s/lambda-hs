@@ -21,6 +21,7 @@ import qualified Data.ByteString.Short as BS
 import Data.Word
 import Data.Int
 import Data.List
+import qualified Data.Set as Set
 import Control.Monad.Except
 import qualified Data.Map as M
 import GHC.Generics
@@ -93,9 +94,11 @@ instance HasType S.Var where
 
 instance HasType S.App where 
   getType (S.App a _) = getType a
-  getType (S.AppC a _) = getType a
 
 instance HasType S.Abstraction -- Uses generic instance
+
+instance HasType S.Function where 
+  getType (S.Function _ body) = getType body
 
 instance HasType S.MkClosure where 
   getType (S.ClosureRef closure envName) = S.TyPtr $ S.TyStruct closure
@@ -125,25 +128,47 @@ instance DoCodegen S.Assign where
   codegen (S.Assign _ e) = codegen e
 
 instance DoCodegen S.Var where 
-  codegen (S.Var x) = getvar x 
+  codegen (S.Var x) = getvar x >>= flip IR.load 0
   codegen (S.EnvRef env x) = do 
     bindings <- getFields env
     case elemIndex x (map S.bindName bindings) of 
       Just idx -> do 
         var <- getvar "env"
         struct <- IR.load var 0
-        acc <- structAccess' struct idx
-        IR.load acc 0
+        structAccess' struct idx >>= flip IR.load 0
       Nothing -> error $ "Accessing var not in environment "++x
     
 
-instance DoCodegen S.App where 
-  codegen (S.App a _) = codegen a -- TODO: make exception stuff
-  codegen (S.AppC a b) = do 
-    codegen a 
-    codegen b 
+instance DoCodegen S.App where  
+  -- For functions
+  codegen (S.App (S.EVar (S.EnvRef _ a)) b) = do 
+    arg <- fmap (, []) $ codegen b 
+    func <- getvar a 
+    IR.call func [arg]
+    
+  -- Higher order functions
+  codegen (S.App (S.EVar (S.Var a)) b) = do
+    op <- getvar a
+    func <- structAccess' op 0 >>= flip IR.load 0
+    let env = structAccess' op 1 >>= flip IR.load 0
+    args <- mapM (fmap (, [])) [env, codegen b]
+    IR.call func args
+
+  -- Closures
+  codegen (S.App a b) = do 
+    op <- codegen a 
+    func <- structAccess' op 0 >>= flip IR.load 0
+    let env = structAccess' op 1 >>= flip IR.load 0
+    args <- mapM (fmap (, [])) [env, codegen b]
+
+    IR.call func args
+
+
 
 instance DoCodegen S.Abstraction -- Uses generic instance
+
+instance DoCodegen S.Function where 
+  codegen _ = return $ IR.int8 0
 
 instance DoCodegen S.MkClosure where 
   codegen (S.ClosureRef closure envName) = do
@@ -169,11 +194,11 @@ instance DoCodegen S.MkClosure where
         rhs <- if M.member var syms then codegen (S.Var var)
                else codegen (S.EnvRef envName var)
 
-        loadedRhs <- IR.load rhs 0
+        --loadedRhs <- IR.load rhs 0
 
         lhs <- structAccess' envOp idx 
 
-        IR.store lhs 0 loadedRhs
+        IR.store lhs 0 rhs
 
   codegen _ = return $ IR.int8 0
 
@@ -209,6 +234,8 @@ codegenBuiltIn :: (String, [AST.Type], AST.Type) -> LLVM ()
 codegenBuiltIn (name, argtys, retty) = do 
   func <- IR.extern (AST.mkName name) argtys retty 
   assign name func
+
+
 
 builtIns :: [(String, [AST.Type], AST.Type)]
 builtIns = 
@@ -302,9 +329,36 @@ codegenClosure (S.MkClosure name lambda env) = do
 
           codegen body >>= IR.ret
 
+codegenFunction :: S.Function -> LLVM ()
+codegenFunction (S.Function name body) = do 
+  mkLambda body
+  where
+    mkLambda (S.Lambda param body) = mdo
+      assign name function 
+      function <- locally $ do 
+        retty <- ltypeOfType (getType body)
+        let args = [S.Bind S.TyFloat param]
+        params <- mapM mkParam args
+        IR.function name' params retty (genBody args)
+      return ()
+      where 
+        name' = AST.mkName name
+        mkParam (S.Bind t n) = (,) <$> ltypeOfType t <*> pure (IR.ParameterName $ strToBS n)
+        genBody :: [S.Bind] -> [AST.Operand] -> Codegen ()
+        genBody args ops = do 
+          _entry <- IR.block `IR.named` "entry"
+          forM_ (zip ops args) $ \(op, S.Bind _ n) -> do 
+            addr <- IR.alloca (typeOf op) Nothing 0
+            IR.store addr 0 op 
+            assign n addr
+
+          codegen body >>= IR.ret
+  
+
 codegenTop :: S.Declaration -> LLVM ()
 codegenTop e = case e of 
-  S.DFunction name closure -> codegenClosure closure >> return ()
+  S.DClosure name closure -> codegenClosure closure >> return ()
+  S.DFunction name body -> codegenFunction body >> return ()
 
 
 charStar :: AST.Type
@@ -317,10 +371,13 @@ codegenMod fns =
     $ do 
       printf <- IR.externVarArgs (AST.mkName "printf") [charStar] AST.i32
       assign "printf" printf
-      trace (show (concatMap transforms fns)) $ 
-        mapM_ codegenBuiltIn builtIns
-      mapM_ codegenTop (concatMap transforms fns)
+      mapM_ codegenBuiltIn builtIns
+      mapM_ codegenTop (transforms fns)
 
-transforms :: S.Expr -> [S.Declaration]
-transforms = lambdaLift . convertFuncAssign . closureConvert
+transforms :: [S.Expr] -> [S.Declaration]
+transforms 
+  = concatMap lambdaLift
+  . map (convertFuncAssign)
+  . closureConverts
+
 
