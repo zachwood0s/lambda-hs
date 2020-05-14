@@ -1,6 +1,6 @@
 # lambda-hs
 
-## Things I explored in this project
+## Other things I explored in this project
 
 One of my major goals with this project was to explore various ways that
 I could write decently clean compiler code. With that goal in mind, I explored 
@@ -27,7 +27,7 @@ Leaf nodes and not the branches, I still need to define the traversal
 function for the Branch nodes. In this simple exmple, this isn't a big
 deal but for my large AST I thought it would be neat to have a generic traversal
 method for all the nodes and be able to define specific operations to perform on 
-a specific node type. After a lot of digging, I found the library (alloy)[https://hackage.haskell.org/package/alloy] which helps with this a great deal. 
+a specific node type. After a lot of digging, I found the library [alloy](https://hackage.haskell.org/package/alloy) which helps with this a great deal. 
 
 A good example of how I used this library can be found in ClosureConvert.hs
 The whole process uses it but I think one of the more elegent functions is the
